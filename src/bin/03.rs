@@ -17,7 +17,9 @@ pub fn part_two(input: &str) -> Option<u64> {
     // Remove newlines
     let input = Regex::new(r"\n").unwrap().replace_all(input, "");
     // Remove all text between don't() and do()
-    let input = Regex::new(r"don't\(\).*?do\(\)").unwrap().replace_all(&input, "");
+    let input = Regex::new(r"don't\(\).*?do\(\)")
+        .unwrap()
+        .replace_all(&input, "");
     // Remove any text at the end of the string followed by don't()
     let input = Regex::new(r"don't\(\).*").unwrap().replace_all(&input, "");
 
