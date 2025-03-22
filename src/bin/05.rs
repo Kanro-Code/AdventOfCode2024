@@ -3,17 +3,15 @@ use std::collections::HashMap;
 advent_of_code::solution!(5);
 
 pub fn part_one(input: &str) -> Option<u64> {
-    let (rules, proposals) = parse_input(input);
-    let map = parse_rules(rules);
+    let (rulebook, proposals) = parse_input(input);
 
     let total = proposals
         .iter()
-        .filter_map(|proposal| {
-            if check_proposal(&map, proposal) {
-                let middle = proposal.len() / 2;
-                Some(proposal[middle])
+        .map(|proposal| {
+            if rulebook.is_valid_proposal(proposal) {
+                proposal.center()
             } else {
-                None
+                0
             }
         })
         .sum();
@@ -21,41 +19,75 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(total)
 }
 
-pub fn part_two(input: &str) -> Option<u64> {
+pub fn part_two(_input: &str) -> Option<u64> {
     None
 }
 
-pub fn check_proposal(rules: &HashMap<u64, Vec<u64>>, proposal: &[u64]) -> bool {
-    // -1 because it doesn't need to check the last page
-    for i in 0..proposal.len() - 1 {
-        let current_page = proposal[i];
+#[derive(Debug)]
+pub struct Rule {
+    first: u64,
+    second: u64,
+}
 
-        let Some(forbidden_pages) = rules.get(&current_page) else {
-            continue;
-        };
+pub struct RuleBook {
+    map: HashMap<u64, Vec<u64>>,
+}
 
-        for j in i + 1..proposal.len() {
-            if forbidden_pages.contains(&proposal[j]) {
-                return false;
+impl RuleBook {
+    pub fn new(rules: Vec<Rule>) -> Self {
+        let map = Self::parse_rules(rules);
+        Self { map }
+    }
+
+    pub fn is_valid_proposal(&self, proposal: &Proposal) -> bool {
+        // -1 because it doesn't need to check the last page
+        for i in 0..proposal.len() - 1 {
+            let current_page = proposal.inner[i];
+
+            let Some(forbidden_pages) = self.map.get(&current_page) else {
+                continue;
+            };
+
+            for j in i + 1..proposal.len() {
+                if forbidden_pages.contains(&proposal.inner[j]) {
+                    return false;
+                }
             }
         }
+        true
     }
-    true
+
+    pub fn parse_rules(rules: Vec<Rule>) -> HashMap<u64, Vec<u64>> {
+        rules.into_iter().fold(HashMap::new(), |mut map, rule| {
+            map.entry(rule.second).or_default().push(rule.first);
+            map
+        })
+    }
 }
 
-pub fn get_center(proposal: &[u64]) -> u64 {
-    let middle = proposal.len() / 2;
-    proposal[middle]
+pub struct Proposal {
+    inner: Vec<u64>,
 }
 
-pub fn parse_rules(rules: Vec<Rule>) -> HashMap<u64, Vec<u64>> {
-    rules.into_iter().fold(HashMap::new(), |mut map, rule| {
-        map.entry(rule.second).or_default().push(rule.first);
-        map
-    })
+impl Proposal {
+    pub fn new(inner: Vec<u64>) -> Self {
+        Self { inner }
+    }
+
+    pub fn center(&self) -> u64 {
+        self.inner[self.inner.len() / 2]
+    }
+
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
 }
 
-pub fn parse_input(input: &str) -> (Vec<Rule>, Vec<Vec<u64>>) {
+pub fn parse_input(input: &str) -> (RuleBook, Vec<Proposal>) {
     let (ordering, update) = input.split_once("\n\n").unwrap();
 
     let rules: Vec<Rule> = ordering
@@ -69,18 +101,15 @@ pub fn parse_input(input: &str) -> (Vec<Rule>, Vec<Vec<u64>>) {
         })
         .collect();
 
-    let proposals: Vec<Vec<u64>> = update
+    let rulebook = RuleBook::new(rules);
+
+    let proposals: Vec<Proposal> = update
         .lines()
         .map(|line| line.split(",").map(|s| s.parse().unwrap()).collect())
+        .map(Proposal::new)
         .collect();
 
-    (rules, proposals)
-}
-
-#[derive(Debug)]
-pub struct Rule {
-    first: u64,
-    second: u64,
+    (rulebook, proposals)
 }
 
 #[cfg(test)]
