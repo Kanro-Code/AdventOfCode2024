@@ -9,7 +9,6 @@ pub fn part_two(input: &str) -> Option<u64> {
     // let input = Grid::parse_input(input);
     let grid = Grid::new(input);
 
-
     let count_patterns = |y: usize, x: usize| -> bool {
         if grid.cells[y][x] != 'A' {
             return false;
@@ -38,10 +37,8 @@ pub fn part_two(input: &str) -> Option<u64> {
     };
 
     let total = (1..grid.height - 1)
-        .flat_map(|y| (1..grid.width - 1)
-            .filter(move |&x| count_patterns(y, x)))
+        .flat_map(|y| (1..grid.width - 1).filter(move |&x| count_patterns(y, x)))
         .count() as u64;
-
 
     Some(total)
 }
