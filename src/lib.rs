@@ -2,21 +2,23 @@ pub mod template;
 
 // Use this file to add helper functions and additional modules.
 
+#[derive(Debug)]
 pub struct Grid<T> {
     pub width: usize,
     pub height: usize,
-    pub cells: Vec<Vec<T>>,
+    cells: Vec<Vec<T>>,
 }
 
+#[derive(Debug)]
 pub enum Direction {
     North,
-    Northeast,
+    NorthEast,
     East,
-    Southeast,
+    SouthEast,
     South,
-    Southwest,
+    SouthWest,
     West,
-    Northwest,
+    NorthWest,
 }
 
 impl Direction {
@@ -30,13 +32,13 @@ impl Direction {
     pub fn delta_coords(&self) -> (isize, isize) {
         match self {
             Direction::North => (0, -1),
-            Direction::Northeast => (1, -1),
+            Direction::NorthEast => (1, -1),
             Direction::East => (1, 0),
-            Direction::Southeast => (1, 1),
+            Direction::SouthEast => (1, 1),
             Direction::South => (0, 1),
-            Direction::Southwest => (-1, 1),
+            Direction::SouthWest => (-1, 1),
             Direction::West => (-1, 0),
-            Direction::Northwest => (-1, -1),
+            Direction::NorthWest => (-1, -1),
         }
     }
 }
@@ -128,16 +130,16 @@ mod tests {
         let vec = grid.collect_sequence(2, 2, 3, Direction::West);
         assert_eq!(vec.unwrap(), vec![&9, &8, &7]);
 
-        let vec = grid.collect_sequence(2, 2, 3, Direction::Northwest);
+        let vec = grid.collect_sequence(2, 2, 3, Direction::NorthWest);
         assert_eq!(vec.unwrap(), vec![&9, &5, &1]);
 
-        let vec = grid.collect_sequence(0, 2, 3, Direction::Northeast);
+        let vec = grid.collect_sequence(0, 2, 3, Direction::NorthEast);
         assert_eq!(vec.unwrap(), vec![&7, &5, &3]);
 
-        let vec = grid.collect_sequence(0, 0, 3, Direction::Southeast);
+        let vec = grid.collect_sequence(0, 0, 3, Direction::SouthEast);
         assert_eq!(vec.unwrap(), vec![&1, &5, &9]);
 
-        let vec = grid.collect_sequence(2, 0, 3, Direction::Southwest);
+        let vec = grid.collect_sequence(2, 0, 3, Direction::SouthWest);
         assert_eq!(vec.unwrap(), vec![&3, &5, &7]);
     }
 
@@ -158,7 +160,11 @@ mod tests {
         let input = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
         let grid = super::Grid::new(input);
 
-        assert!(grid.matches_grid(0, 0, Direction::East, vec![&1, &2, &3]).unwrap());
-        assert!(!grid.matches_grid(0, 0, Direction::East, vec![&1, &2, &4]).unwrap());
+        assert!(grid
+            .matches_grid(0, 0, Direction::East, vec![&1, &2, &3])
+            .unwrap());
+        assert!(!grid
+            .matches_grid(0, 0, Direction::East, vec![&1, &2, &4])
+            .unwrap());
     }
 }
