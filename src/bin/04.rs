@@ -4,27 +4,36 @@ use std::vec;
 
 use advent_of_code::{Direction, Grid};
 
+const DIRECTIONS: [Direction; 8] = [
+    Direction::South,
+    Direction::East,
+    Direction::SouthWest,
+    Direction::SouthEast,
+    Direction::West,
+    Direction::NorthWest,
+    Direction::North,
+    Direction::NorthEast,
+];
+
 pub fn part_one(input: &str) -> Option<u64> {
     let grid = parse_input(input);
 
-    let xmas = vec![&'X', &'M', &'A', &'S'];
-
-    let directions = [
-        Direction::South,
-        Direction::East,
-        Direction::SouthWest,
-        Direction::SouthEast,
-        Direction::West,
-        Direction::NorthWest,
-        Direction::North,
-        Direction::NorthEast,
-    ];
+    let xmas = vec!['X', 'M', 'A', 'S'];
 
     let total = grid
         .iter()
-        .map(|(x, y, _)| {
-            directions.iter().fold(0, |acc, dir| {
-                let res = grid.matches_grid(x, y, dir, &xmas);
+        .map(|(x, y, value)| {
+            if value != 'X' {
+                return 0
+            }
+
+            DIRECTIONS.iter().fold(0, |acc, dir| {
+                if dir.out_of_bounds(x, y, grid.width, grid.height) {
+                    return acc
+                };
+
+                let res = grid.matches_sequence(x, y, dir, &xmas);
+
                 if let Ok(res) = res {
                     if res {
                         return acc + 1;
@@ -40,28 +49,37 @@ pub fn part_one(input: &str) -> Option<u64> {
 
 pub fn part_two(input: &str) -> Option<u64> {
     let grid = parse_input(input);
-    let check_sequence = |x, y, dir| {
-        grid.collect_sequence(x, y, 3, dir)
-            .map(|seq| seq.iter().map(|c| **c as u64).sum::<u64>())
-            .unwrap_or(0)
-    };
 
-    let total = (1..grid.width - 1)
-        .flat_map(|x| (1..grid.height - 1).map(move |y| (x, y)))
-        .filter(|&(x, y)| grid.get_cell(x, y) == Some(&'A'))
-        .filter(|&(x, y)| {
-            let part1 = check_sequence(x - 1, y - 1, &Direction::SouthEast);
-            let part2 = check_sequence(x + 1, y - 1, &Direction::SouthWest);
-            part1 == 225 && part2 == 225
-        })
-        .count();
+    let total: u64 = grid.iter().fold(0, |acc, (x, y, value)| {
+        if x == 0 || x == grid.width - 1 || y == 0 || y == grid.height - 1 {
+            return acc;
+        }
 
-    Some(total as u64)
+        if value != 'A' {
+            return acc
+        }
+
+        let part1 = sum_sequence(&grid, x - 1, y - 1, &Direction::SouthEast);
+        let part2 = sum_sequence(&grid, x + 1, y - 1, &Direction::SouthWest);
+        if part1 == 225 && part2 == 225 {
+            acc + 1
+        } else {
+            acc
+        }
+    });
+
+    Some(total)
 }
 
-pub fn parse_input(input: &str) -> Grid<char> {
+pub fn parse_input(input: &str) -> Grid {
     let vec: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
     Grid::new(vec)
+}
+
+pub fn sum_sequence(grid: &Grid, x: usize, y: usize, dir: &Direction) -> u64 {
+    grid.collect_sequence(x, y,3, dir)
+        .map(|seq| seq.iter().map(|c| *c as u64).sum())
+        .unwrap_or(0)
 }
 
 #[cfg(test)]
