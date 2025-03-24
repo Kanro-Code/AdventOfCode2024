@@ -50,7 +50,7 @@ impl Direction {
         }
 
         if y as isize + dy < 0 || y as isize + dy > height as isize {
-            return true
+            return true;
         }
 
         false
@@ -72,7 +72,6 @@ impl Grid {
         }
 
         self.cells.get(y).and_then(|row| row.get(x).cloned())
-
     }
 
     #[allow(clippy::result_unit_err)]
@@ -157,7 +156,11 @@ mod tests {
 
     #[test]
     fn grid() {
-        let input = vec![vec!['1', '2', '3'], vec!['4', '5', '6'], vec!['7', '8', '9']];
+        let input = vec![
+            vec!['1', '2', '3'],
+            vec!['4', '5', '6'],
+            vec!['7', '8', '9'],
+        ];
         let grid = super::Grid::new(input);
         assert_eq!(grid.width, 3);
         assert_eq!(grid.height, 3);
@@ -169,7 +172,11 @@ mod tests {
 
     #[test]
     fn grid_get_direction() {
-        let input = vec![vec!['1', '2', '3'], vec!['4', '5', '6'], vec!['7', '8', '9']];
+        let input = vec![
+            vec!['1', '2', '3'],
+            vec!['4', '5', '6'],
+            vec!['7', '8', '9'],
+        ];
         let grid = super::Grid::new(input);
 
         let vec = grid.collect_sequence(0, 0, 3, &Direction::East);
@@ -199,7 +206,11 @@ mod tests {
 
     #[test]
     fn grid_fails() {
-        let input = vec![vec!['1', '2', '3'], vec!['4', '5', '6'], vec!['7', '8', '9']];
+        let input = vec![
+            vec!['1', '2', '3'],
+            vec!['4', '5', '6'],
+            vec!['7', '8', '9'],
+        ];
         let grid = super::Grid::new(input);
 
         let vec = grid.collect_sequence(0, 0, 4, &Direction::East);
@@ -211,7 +222,11 @@ mod tests {
 
     #[test]
     fn grid_matches_grid() {
-        let input = vec![vec!['1', '2', '3'], vec!['4', '5', '6'], vec!['7', '8', '9']];
+        let input = vec![
+            vec!['1', '2', '3'],
+            vec!['4', '5', '6'],
+            vec!['7', '8', '9'],
+        ];
         let grid = super::Grid::new(input);
 
         assert!(grid

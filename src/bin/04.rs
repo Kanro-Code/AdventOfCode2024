@@ -17,32 +17,21 @@ const DIRECTIONS: [Direction; 8] = [
 
 pub fn part_one(input: &str) -> Option<u64> {
     let grid = parse_input(input);
-
     let xmas = vec!['X', 'M', 'A', 'S'];
 
     let total = grid
         .iter()
-        .map(|(x, y, value)| {
-            if value != 'X' {
-                return 0
-            }
-
-            DIRECTIONS.iter().fold(0, |acc, dir| {
-                if dir.out_of_bounds(x, y, grid.width, grid.height) {
-                    return acc
-                };
-
-                let res = grid.matches_sequence(x, y, dir, &xmas);
-
-                if let Ok(res) = res {
-                    if res {
-                        return acc + 1;
-                    }
-                }
-                acc
-            })
+        .filter(|(_, _, value)| *value == 'X')
+        .map(|(x, y, _)| {
+            DIRECTIONS
+                .iter()
+                .filter(|&dir| {
+                    !dir.out_of_bounds(x, y, grid.width, grid.height)
+                        && grid.matches_sequence(x, y, dir, &xmas).unwrap_or(false)
+                })
+                .count()
         })
-        .sum();
+        .sum::<usize>() as u64;
 
     Some(total)
 }
@@ -56,7 +45,7 @@ pub fn part_two(input: &str) -> Option<u64> {
         }
 
         if value != 'A' {
-            return acc
+            return acc;
         }
 
         let part1 = sum_sequence(&grid, x - 1, y - 1, &Direction::SouthEast);
@@ -77,7 +66,7 @@ pub fn parse_input(input: &str) -> Grid {
 }
 
 pub fn sum_sequence(grid: &Grid, x: usize, y: usize, dir: &Direction) -> u64 {
-    grid.collect_sequence(x, y,3, dir)
+    grid.collect_sequence(x, y, 3, dir)
         .map(|seq| seq.iter().map(|c| *c as u64).sum())
         .unwrap_or(0)
 }

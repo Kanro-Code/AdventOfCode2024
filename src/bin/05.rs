@@ -5,66 +5,93 @@ advent_of_code::solution!(5);
 pub fn part_one(input: &str) -> Option<u64> {
     let (rulebook, proposals) = parse_input(input);
 
-    let total = proposals
-        .iter()
-        .map(|proposal| {
-            if rulebook.is_valid_proposal(proposal) {
-                proposal.center()
-            } else {
-                0
-            }
-        })
-        .sum();
+    let total = proposals.iter().fold(0, |acc, proposal| {
+        if rulebook.is_valid(proposal) {
+            return acc + proposal.center();
+        }
+        acc
+    });
 
     Some(total)
 }
 
-pub fn part_two(_input: &str) -> Option<u64> {
-    None
+pub fn part_two(input: &str) -> Option<u64> {
+    let (rulebook, proposals) = parse_input(input);
+
+    let total: u64 = proposals.iter().fold(0, |acc, proposal| {
+        if !rulebook.is_valid(proposal) {
+            let fixed = rulebook.fix_proposal(proposal);
+            acc + fixed.center()
+        } else {
+            acc
+        }
+    });
+    Some(total)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Rule {
     first: u64,
     second: u64,
 }
 
+#[derive(Debug, Clone)]
 pub struct RuleBook {
     map: HashMap<u64, Vec<u64>>,
 }
 
 impl RuleBook {
-    pub fn new(rules: Vec<Rule>) -> Self {
-        let map = Self::parse_rules(rules);
-        Self { map }
+    pub fn is_valid(&self, proposal: &Proposal) -> bool {
+        proposal.inner.windows(2).all(|pair| {
+            let [current, next] = pair else {
+                return false;
+            };
+            self.compare_pages(*current, *next) != std::cmp::Ordering::Less
+        })
     }
 
-    pub fn is_valid_proposal(&self, proposal: &Proposal) -> bool {
-        // -1 because it doesn't need to check the last page
-        for i in 0..proposal.len() - 1 {
-            let current_page = proposal.inner[i];
+    pub fn fix_proposal(&self, proposal: &Proposal) -> Proposal {
+        let mut fixed = proposal.clone();
+        fixed
+            .inner
+            .sort_by(|&page1, &page2| self.compare_pages(page1, page2));
 
-            let Some(forbidden_pages) = self.map.get(&current_page) else {
-                continue;
-            };
+        fixed
+    }
 
-            for j in i + 1..proposal.len() {
-                if forbidden_pages.contains(&proposal.inner[j]) {
-                    return false;
+    fn compare_pages(&self, a: u64, b: u64) -> std::cmp::Ordering {
+        use std::cmp::Ordering;
+
+        match (self.map.get(&a), self.map.get(&b)) {
+            (Some(a_forbids), Some(b_forbids)) => {
+                if a_forbids.contains(&b) {
+                    Ordering::Less
+                } else if b_forbids.contains(&a) {
+                    Ordering::Greater
+                } else {
+                    Ordering::Equal
                 }
             }
+            (Some(a_forbids), None) if a_forbids.contains(&b) => Ordering::Less,
+            (None, Some(b_forbids)) if b_forbids.contains(&a) => Ordering::Greater,
+            _ => Ordering::Equal,
         }
-        true
-    }
-
-    pub fn parse_rules(rules: Vec<Rule>) -> HashMap<u64, Vec<u64>> {
-        rules.into_iter().fold(HashMap::new(), |mut map, rule| {
-            map.entry(rule.second).or_default().push(rule.first);
-            map
-        })
     }
 }
 
+impl Into<RuleBook> for Vec<Rule> {
+    fn into(self) -> RuleBook {
+        let map = self
+            .into_iter()
+            .fold(HashMap::new(), |mut map: HashMap<u64, Vec<u64>>, rule| {
+                map.entry(rule.first).or_default().push(rule.second);
+                map
+            });
+        RuleBook { map }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Proposal {
     inner: Vec<u64>,
 }
@@ -85,6 +112,10 @@ impl Proposal {
     pub fn is_empty(&self) -> bool {
         self.inner.is_empty()
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = &u64> {
+        self.inner.iter()
+    }
 }
 
 pub fn parse_input(input: &str) -> (RuleBook, Vec<Proposal>) {
@@ -101,7 +132,7 @@ pub fn parse_input(input: &str) -> (RuleBook, Vec<Proposal>) {
         })
         .collect();
 
-    let rulebook = RuleBook::new(rules);
+    let rulebook = rules.into();
 
     let proposals: Vec<Proposal> = update
         .lines()
@@ -125,6 +156,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(143 + 123));
     }
 }
