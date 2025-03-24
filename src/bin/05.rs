@@ -46,7 +46,7 @@ impl RuleBook {
             let [current, next] = pair else {
                 return false;
             };
-            self.compare_pages(*current, *next) != std::cmp::Ordering::Less
+            self.compare_pages(*current, *next) != std::cmp::Ordering::Greater
         })
     }
 
@@ -79,14 +79,15 @@ impl RuleBook {
     }
 }
 
-impl Into<RuleBook> for Vec<Rule> {
-    fn into(self) -> RuleBook {
-        let map = self
-            .into_iter()
-            .fold(HashMap::new(), |mut map: HashMap<u64, Vec<u64>>, rule| {
-                map.entry(rule.first).or_default().push(rule.second);
-                map
-            });
+impl From<Vec<Rule>> for RuleBook {
+    fn from(rules: Vec<Rule>) -> Self {
+        let map =
+            rules
+                .into_iter()
+                .fold(HashMap::new(), |mut map: HashMap<u64, Vec<u64>>, rule| {
+                    map.entry(rule.first).or_default().push(rule.second);
+                    map
+                });
         RuleBook { map }
     }
 }
@@ -132,15 +133,13 @@ pub fn parse_input(input: &str) -> (RuleBook, Vec<Proposal>) {
         })
         .collect();
 
-    let rulebook = rules.into();
-
     let proposals: Vec<Proposal> = update
         .lines()
         .map(|line| line.split(",").map(|s| s.parse().unwrap()).collect())
         .map(Proposal::new)
         .collect();
 
-    (rulebook, proposals)
+    (RuleBook::from(rules), proposals)
 }
 
 #[cfg(test)]
@@ -156,6 +155,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, Some(143 + 123));
+        assert_eq!(result, Some(123));
     }
 }
