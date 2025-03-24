@@ -7,31 +7,33 @@ use advent_of_code::{Direction, Grid};
 pub fn part_one(input: &str) -> Option<u64> {
     let grid = parse_input(input);
 
-    let pattern = [
-        vec![&'X', &'M', &'A', &'S'],
-        vec![&'S', &'A', &'M', &'X'],
+    let xmas = vec![&'X', &'M', &'A', &'S'];
+
+    let directions = [
+        Direction::South,
+        Direction::East,
+        Direction::SouthWest,
+        Direction::SouthEast,
+        Direction::West,
+        Direction::NorthWest,
+        Direction::North,
+        Direction::NorthEast,
     ];
 
-    let mut total = 0;
-
-    for x in 0..grid.width {
-        for y in 0..grid.height {
-            let directions = [
-                Direction::South,
-                Direction::East,
-                Direction::SouthWest,
-                Direction::SouthEast,
-            ];
-            for direction in directions {
-                let vec = grid.collect_sequence(x, y, 4, direction);
-                if let Ok(vec) = vec {
-                    if vec == pattern[0] || vec == pattern[1] {
-                        total += 1;
+    let total = grid
+        .iter()
+        .map(|(x, y, _)| {
+            directions.iter().fold(0, |acc, dir| {
+                let res = grid.matches_grid(x, y, dir, &xmas);
+                if let Ok(res) = res {
+                    if res {
+                        return acc + 1;
                     }
                 }
-            }
-        }
-    }
+                acc
+            })
+        })
+        .sum();
 
     Some(total)
 }
@@ -46,10 +48,10 @@ pub fn part_two(input: &str) -> Option<u64> {
 
     let total = (1..grid.width - 1)
         .flat_map(|x| (1..grid.height - 1).map(move |y| (x, y)))
-        .filter(|&(x, y)| grid.get(x, y) == Some(&'A'))
+        .filter(|&(x, y)| grid.get_cell(x, y) == Some(&'A'))
         .filter(|&(x, y)| {
-            let part1 = check_sequence(x - 1, y - 1, Direction::SouthEast);
-            let part2 = check_sequence(x + 1, y - 1, Direction::SouthWest);
+            let part1 = check_sequence(x - 1, y - 1, &Direction::SouthEast);
+            let part2 = check_sequence(x + 1, y - 1, &Direction::SouthWest);
             part1 == 225 && part2 == 225
         })
         .count();

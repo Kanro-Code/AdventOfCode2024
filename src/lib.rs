@@ -52,7 +52,11 @@ impl<T: PartialEq> Grid<T> {
         }
     }
 
-    pub fn get(&self, x: usize, y: usize) -> Option<&T> {
+    pub fn get_cell(&self, x: usize, y: usize) -> Option<&T> {
+        if x >= self.width || y >= self.height {
+            return None;
+        }
+
         self.cells.get(y).and_then(|row| row.get(x))
     }
 
@@ -62,7 +66,7 @@ impl<T: PartialEq> Grid<T> {
         x: usize,
         y: usize,
         distance: usize,
-        direction: Direction,
+        direction: &Direction,
     ) -> Result<Vec<&T>, ()> {
         let (dx, dy) = direction.delta_coords();
 
@@ -74,7 +78,7 @@ impl<T: PartialEq> Grid<T> {
                 return Err(());
             }
 
-            match self.get(new_x, new_y) {
+            match self.get_cell(new_x, new_y) {
                 Some(value) => {
                     acc.push(value);
                     Ok(acc)
@@ -89,11 +93,46 @@ impl<T: PartialEq> Grid<T> {
         &self,
         x: usize,
         y: usize,
-        direction: Direction,
-        expected: Vec<&T>,
+        direction: &Direction,
+        expected: &Vec<&T>,
     ) -> Result<bool, ()> {
         let seq = self.collect_sequence(x, y, expected.len(), direction)?;
-        Ok(seq == expected)
+        Ok(&seq == expected)
+    }
+
+    pub fn iter(&self) -> GridIterator<T> {
+        GridIterator {
+            grid: self,
+            x: 0,
+            y: 0,
+        }
+    }
+}
+
+pub struct GridIterator<'a, T> {
+    grid: &'a Grid<T>,
+    x: usize,
+    y: usize,
+}
+
+impl<'a, T: PartialEq> Iterator for GridIterator<'a, T> {
+    type Item = (usize, usize, &'a T);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.y == self.grid.height {
+            return None;
+        }
+        let value = self.grid.get_cell(self.x, self.y).unwrap();
+        let x = self.x;
+        let y = self.y;
+
+        self.x += 1;
+        if self.x == self.grid.width {
+            self.x = 0;
+            self.y += 1;
+        }
+
+        Some((x, y, value))
     }
 }
 
@@ -108,9 +147,9 @@ mod tests {
         assert_eq!(grid.width, 3);
         assert_eq!(grid.height, 3);
 
-        assert_eq!(grid.get(0, 0), Some(&1));
-        assert_eq!(grid.get(1, 1), Some(&5));
-        assert_eq!(grid.get(2, 2), Some(&9));
+        assert_eq!(grid.get_cell(0, 0), Some(&1));
+        assert_eq!(grid.get_cell(1, 1), Some(&5));
+        assert_eq!(grid.get_cell(2, 2), Some(&9));
     }
 
     #[test]
@@ -118,28 +157,28 @@ mod tests {
         let input = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
         let grid = super::Grid::new(input);
 
-        let vec = grid.collect_sequence(0, 0, 3, Direction::East);
+        let vec = grid.collect_sequence(0, 0, 3, &Direction::East);
         assert_eq!(vec.unwrap(), vec![&1, &2, &3]);
 
-        let vec = grid.collect_sequence(0, 0, 3, Direction::South);
+        let vec = grid.collect_sequence(0, 0, 3, &Direction::South);
         assert_eq!(vec.unwrap(), vec![&1, &4, &7]);
 
-        let vec = grid.collect_sequence(0, 2, 3, Direction::North);
+        let vec = grid.collect_sequence(0, 2, 3, &Direction::North);
         assert_eq!(vec.unwrap(), vec![&7, &4, &1]);
 
-        let vec = grid.collect_sequence(2, 2, 3, Direction::West);
+        let vec = grid.collect_sequence(2, 2, 3, &Direction::West);
         assert_eq!(vec.unwrap(), vec![&9, &8, &7]);
 
-        let vec = grid.collect_sequence(2, 2, 3, Direction::NorthWest);
+        let vec = grid.collect_sequence(2, 2, 3, &Direction::NorthWest);
         assert_eq!(vec.unwrap(), vec![&9, &5, &1]);
 
-        let vec = grid.collect_sequence(0, 2, 3, Direction::NorthEast);
+        let vec = grid.collect_sequence(0, 2, 3, &Direction::NorthEast);
         assert_eq!(vec.unwrap(), vec![&7, &5, &3]);
 
-        let vec = grid.collect_sequence(0, 0, 3, Direction::SouthEast);
+        let vec = grid.collect_sequence(0, 0, 3, &Direction::SouthEast);
         assert_eq!(vec.unwrap(), vec![&1, &5, &9]);
 
-        let vec = grid.collect_sequence(2, 0, 3, Direction::SouthWest);
+        let vec = grid.collect_sequence(2, 0, 3, &Direction::SouthWest);
         assert_eq!(vec.unwrap(), vec![&3, &5, &7]);
     }
 
@@ -148,10 +187,10 @@ mod tests {
         let input = vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]];
         let grid = super::Grid::new(input);
 
-        let vec = grid.collect_sequence(0, 0, 4, Direction::East);
+        let vec = grid.collect_sequence(0, 0, 4, &Direction::East);
         assert!(vec.is_err());
 
-        let vec = grid.collect_sequence(0, 0, 4, Direction::South);
+        let vec = grid.collect_sequence(0, 0, 4, &Direction::South);
         assert!(vec.is_err());
     }
 
@@ -161,10 +200,23 @@ mod tests {
         let grid = super::Grid::new(input);
 
         assert!(grid
-            .matches_grid(0, 0, Direction::East, vec![&1, &2, &3])
+            .matches_grid(0, 0, &Direction::East, &vec![&1, &2, &3])
             .unwrap());
         assert!(!grid
-            .matches_grid(0, 0, Direction::East, vec![&1, &2, &4])
+            .matches_grid(0, 0, &Direction::East, &vec![&1, &2, &4])
             .unwrap());
+    }
+
+    #[test]
+    fn grid_iterator() {
+        let input = vec![vec![1, 2], vec![3, 4]];
+        let grid = super::Grid::new(input);
+
+        let mut iter = grid.iter();
+        assert_eq!(iter.next(), Some((0, 0, &1)));
+        assert_eq!(iter.next(), Some((1, 0, &2)));
+        assert_eq!(iter.next(), Some((0, 1, &3)));
+        assert_eq!(iter.next(), Some((1, 1, &4)));
+        assert_eq!(iter.next(), None);
     }
 }
