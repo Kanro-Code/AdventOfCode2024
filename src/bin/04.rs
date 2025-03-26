@@ -60,12 +60,12 @@ pub fn part_two(input: &str) -> Option<u64> {
     Some(total)
 }
 
-pub fn parse_input(input: &str) -> Grid {
+pub fn parse_input(input: &str) -> Grid<char> {
     let vec: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
     Grid::new(vec)
 }
 
-pub fn sum_sequence(grid: &Grid, x: usize, y: usize, dir: &Direction) -> u64 {
+pub fn sum_sequence(grid: &Grid<char>, x: usize, y: usize, dir: &Direction) -> u64 {
     grid.collect_sequence(x, y, 3, dir)
         .map(|seq| seq.iter().map(|c| *c as u64).sum())
         .unwrap_or(0)
