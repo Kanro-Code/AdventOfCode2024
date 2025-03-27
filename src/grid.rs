@@ -1,11 +1,17 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Grid<T> {
     pub width: usize,
     pub height: usize,
     cells: Vec<Vec<T>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct Coordinate {
+    pub x: usize,
+    pub y: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Direction {
     North,
     NorthEast,
@@ -38,14 +44,14 @@ impl Direction {
         }
     }
 
-    pub fn out_of_bounds(&self, x: usize, y: usize, width: usize, height: usize) -> bool {
+    pub fn out_of_bounds(&self, coor: &Coordinate, width: usize, height: usize) -> bool {
         let (dx, dy) = self.delta_coords();
 
-        if x as isize + dx < 0 || x as isize + dx >= width as isize {
+        if coor.x as isize + dx < 0 || coor.x as isize + dx >= width as isize {
             return true;
         }
 
-        if y as isize + dy < 0 || y as isize + dy > height as isize {
+        if coor.y as isize + dy < 0 || coor.y as isize + dy > height as isize {
             return true;
         }
 
@@ -65,12 +71,12 @@ where
         }
     }
 
-    pub fn get_cell(&self, x: usize, y: usize) -> Option<T> {
-        if x >= self.width || y >= self.height {
+    pub fn get_cell(&self, coor: &Coordinate) -> Option<T> {
+        if coor.x >= self.width || coor.y >= self.height {
             return None;
         }
 
-        self.cells.get(y).and_then(|row| row.get(x).cloned())
+        self.cells.get(coor.y).and_then(|row| row.get(coor.x).cloned())
     }
 
     #[allow(clippy::result_unit_err)]
@@ -91,7 +97,9 @@ where
                 return Err(());
             }
 
-            match self.get_cell(new_x, new_y) {
+            let coor = Coordinate { x: new_x, y: new_y };
+
+            match self.get_cell(&coor) {
                 Some(value) => {
                     acc.push(value);
                     Ok(acc)
@@ -104,51 +112,47 @@ where
     #[allow(clippy::result_unit_err)]
     pub fn matches_sequence(
         &self,
-        x: usize,
-        y: usize,
+        coor: &Coordinate,
         direction: &Direction,
         expected: &Vec<T>,
     ) -> Result<bool, ()> {
-        let seq = self.collect_sequence(x, y, expected.len(), direction)?;
+        let seq = self.collect_sequence(coor.x, coor.y, expected.len(), direction)?;
         Ok(&seq == expected)
     }
 
     pub fn iter(&self) -> GridIterator<T> {
         GridIterator {
             grid: self,
-            x: 0,
-            y: 0,
+            coor: Coordinate { x: 0, y: 0 },
         }
     }
 }
 
 pub struct GridIterator<'a, T> {
     grid: &'a Grid<T>,
-    x: usize,
-    y: usize,
+    coor: Coordinate,
 }
 
 impl<T> Iterator for GridIterator<'_, T>
 where
     T: Clone + PartialEq,
 {
-    type Item = (usize, usize, T);
+    type Item = (Coordinate, T);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.y == self.grid.height {
+        if self.coor.y == self.grid.height {
             return None;
         }
-        let value = self.grid.get_cell(self.x, self.y).unwrap();
-        let x = self.x;
-        let y = self.y;
+        let value = self.grid.get_cell(&self.coor).unwrap();
+        let coor = Coordinate { x: self.coor.x, y: self.coor.y };
 
-        self.x += 1;
-        if self.x == self.grid.width {
-            self.x = 0;
-            self.y += 1;
+        self.coor.x += 1;
+        if self.coor.x == self.grid.width {
+            self.coor.x = 0;
+            self.coor.y += 1;
         }
 
-        Some((x, y, value))
+        Some((coor, value))
     }
 }
 
@@ -167,9 +171,9 @@ mod tests {
         assert_eq!(grid.width, 3);
         assert_eq!(grid.height, 3);
 
-        assert_eq!(grid.get_cell(0, 0), Some('1'));
-        assert_eq!(grid.get_cell(1, 1), Some('5'));
-        assert_eq!(grid.get_cell(2, 2), Some('9'));
+        assert_eq!(grid.get_cell(&Coordinate { x: 0, y: 0 }), Some('1'));
+        assert_eq!(grid.get_cell(&Coordinate { x: 1, y: 1 }), Some('5'));
+        assert_eq!(grid.get_cell(&Coordinate { x: 2, y: 2 }), Some('9'));
     }
 
     #[test]
@@ -232,10 +236,10 @@ mod tests {
         let grid = super::Grid::new(input);
 
         assert!(grid
-            .matches_sequence(0, 0, &Direction::East, &vec!['1', '2', '3'])
+            .matches_sequence(&Coordinate { x: 0, y: 0 }, &Direction::East, &vec!['1', '2', '3'])
             .unwrap());
         assert!(!grid
-            .matches_sequence(0, 0, &Direction::East, &vec!['1', '2', '4'])
+            .matches_sequence(&Coordinate { x: 0, y: 0 }, &Direction::East, &vec!['1', '2', '4'])
             .unwrap());
     }
 
@@ -245,10 +249,10 @@ mod tests {
         let grid = super::Grid::new(input);
 
         let mut iter = grid.iter();
-        assert_eq!(iter.next(), Some((0, 0, '1')));
-        assert_eq!(iter.next(), Some((1, 0, '2')));
-        assert_eq!(iter.next(), Some((0, 1, '3')));
-        assert_eq!(iter.next(), Some((1, 1, '4')));
+        assert_eq!(iter.next(), Some((Coordinate { x: 0, y: 0 }, '1')));
+        assert_eq!(iter.next(), Some((Coordinate { x: 1, y: 0 }, '2')));
+        assert_eq!(iter.next(), Some((Coordinate { x: 0, y: 1 }, '3')));
+        assert_eq!(iter.next(), Some((Coordinate { x: 1, y: 1 }, '4')));
         assert_eq!(iter.next(), None);
     }
 }
