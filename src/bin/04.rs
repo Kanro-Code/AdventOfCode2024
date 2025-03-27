@@ -2,7 +2,7 @@ advent_of_code::solution!(4);
 
 use std::vec;
 
-use advent_of_code::{Direction, Grid, Coordinate};
+use advent_of_code::{Coordinate, Direction, Grid};
 
 const DIRECTIONS: [Direction; 8] = [
     Direction::South,
@@ -48,8 +48,17 @@ pub fn part_two(input: &str) -> Option<u64> {
             return acc;
         }
 
-        let part1 = sum_sequence(&grid, coor.x - 1, coor.y - 1, &Direction::SouthEast);
-        let part2 = sum_sequence(&grid, coor.x + 1, coor.y - 1, &Direction::SouthWest);
+        let topleft = Coordinate {
+            x: coor.x - 1,
+            y: coor.y - 1,
+        };
+        let topright = Coordinate {
+            x: coor.x + 1,
+            y: coor.y - 1,
+        };
+
+        let part1 = sum_sequence(&grid, &topleft, &Direction::SouthEast);
+        let part2 = sum_sequence(&grid, &topright, &Direction::SouthWest);
         if part1 == 225 && part2 == 225 {
             acc + 1
         } else {
@@ -65,8 +74,8 @@ pub fn parse_input(input: &str) -> Grid<char> {
     Grid::new(vec)
 }
 
-pub fn sum_sequence(grid: &Grid<char>, x: usize, y: usize, dir: &Direction) -> u64 {
-    grid.collect_sequence(x, y, 3, dir)
+pub fn sum_sequence(grid: &Grid<char>, coor: &Coordinate, dir: &Direction) -> u64 {
+    grid.collect_sequence(coor, 3, dir)
         .map(|seq| seq.iter().map(|c| *c as u64).sum())
         .unwrap_or(0)
 }

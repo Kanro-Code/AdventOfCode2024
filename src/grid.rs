@@ -11,6 +11,15 @@ pub struct Coordinate {
     pub y: usize,
 }
 
+impl Coordinate {
+    pub fn add_delta(&self, dx: isize, dy: isize, steps: usize) -> Coordinate {
+        let x = (self.x as isize + dx * steps as isize) as usize;
+        let y = (self.y as isize + dy * steps as isize) as usize;
+
+        Coordinate { x, y }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Direction {
     North,
@@ -76,28 +85,26 @@ where
             return None;
         }
 
-        self.cells.get(coor.y).and_then(|row| row.get(coor.x).cloned())
+        self.cells
+            .get(coor.y)
+            .and_then(|row| row.get(coor.x).cloned())
     }
 
     #[allow(clippy::result_unit_err)]
     pub fn collect_sequence(
         &self,
-        x: usize,
-        y: usize,
+        coor: &Coordinate,
         distance: usize,
         direction: &Direction,
     ) -> Result<Vec<T>, ()> {
         let (dx, dy) = direction.delta_coords();
 
         (0..distance).try_fold(Vec::with_capacity(distance), |mut acc, i| {
-            let new_x = (x as isize + dx * i as isize) as usize;
-            let new_y = (y as isize + dy * i as isize) as usize;
+            let coor = coor.add_delta(dx, dy, i);
 
-            if new_x >= self.width || new_y >= self.height {
+            if coor.x >= self.width || coor.y >= self.height {
                 return Err(());
             }
-
-            let coor = Coordinate { x: new_x, y: new_y };
 
             match self.get_cell(&coor) {
                 Some(value) => {
@@ -116,7 +123,7 @@ where
         direction: &Direction,
         expected: &Vec<T>,
     ) -> Result<bool, ()> {
-        let seq = self.collect_sequence(coor.x, coor.y, expected.len(), direction)?;
+        let seq = self.collect_sequence(coor, expected.len(), direction)?;
         Ok(&seq == expected)
     }
 
@@ -144,7 +151,10 @@ where
             return None;
         }
         let value = self.grid.get_cell(&self.coor).unwrap();
-        let coor = Coordinate { x: self.coor.x, y: self.coor.y };
+        let coor = Coordinate {
+            x: self.coor.x,
+            y: self.coor.y,
+        };
 
         self.coor.x += 1;
         if self.coor.x == self.grid.width {
@@ -185,28 +195,28 @@ mod tests {
         ];
         let grid = super::Grid::new(input);
 
-        let vec = grid.collect_sequence(0, 0, 3, &Direction::East);
+        let vec = grid.collect_sequence(&Coordinate { x: 0, y: 0 }, 3, &Direction::East);
         assert_eq!(vec.unwrap(), vec!['1', '2', '3']);
 
-        let vec = grid.collect_sequence(0, 0, 3, &Direction::South);
+        let vec = grid.collect_sequence(&Coordinate { x: 0, y: 0 }, 3, &Direction::South);
         assert_eq!(vec.unwrap(), vec!['1', '4', '7']);
 
-        let vec = grid.collect_sequence(0, 2, 3, &Direction::North);
+        let vec = grid.collect_sequence(&Coordinate { x: 0, y: 2 }, 3, &Direction::North);
         assert_eq!(vec.unwrap(), vec!['7', '4', '1']);
 
-        let vec = grid.collect_sequence(2, 2, 3, &Direction::West);
+        let vec = grid.collect_sequence(&Coordinate { x: 2, y: 2 }, 3, &Direction::West);
         assert_eq!(vec.unwrap(), vec!['9', '8', '7']);
 
-        let vec = grid.collect_sequence(2, 2, 3, &Direction::NorthWest);
+        let vec = grid.collect_sequence(&Coordinate { x: 2, y: 2 }, 3, &Direction::NorthWest);
         assert_eq!(vec.unwrap(), vec!['9', '5', '1']);
 
-        let vec = grid.collect_sequence(0, 2, 3, &Direction::NorthEast);
+        let vec = grid.collect_sequence(&Coordinate { x: 0, y: 2 }, 3, &Direction::NorthEast);
         assert_eq!(vec.unwrap(), vec!['7', '5', '3']);
 
-        let vec = grid.collect_sequence(0, 0, 3, &Direction::SouthEast);
+        let vec = grid.collect_sequence(&Coordinate { x: 0, y: 0 }, 3, &Direction::SouthEast);
         assert_eq!(vec.unwrap(), vec!['1', '5', '9']);
 
-        let vec = grid.collect_sequence(2, 0, 3, &Direction::SouthWest);
+        let vec = grid.collect_sequence(&Coordinate { x: 2, y: 0 }, 3, &Direction::SouthWest);
         assert_eq!(vec.unwrap(), vec!['3', '5', '7']);
     }
 
@@ -219,10 +229,10 @@ mod tests {
         ];
         let grid = super::Grid::new(input);
 
-        let vec = grid.collect_sequence(0, 0, 4, &Direction::East);
+        let vec = grid.collect_sequence(&Coordinate { x: 0, y: 0 }, 4, &Direction::East);
         assert!(vec.is_err());
 
-        let vec = grid.collect_sequence(0, 0, 4, &Direction::South);
+        let vec = grid.collect_sequence(&Coordinate { x: 0, y: 0 }, 4, &Direction::South);
         assert!(vec.is_err());
     }
 
@@ -236,10 +246,18 @@ mod tests {
         let grid = super::Grid::new(input);
 
         assert!(grid
-            .matches_sequence(&Coordinate { x: 0, y: 0 }, &Direction::East, &vec!['1', '2', '3'])
+            .matches_sequence(
+                &Coordinate { x: 0, y: 0 },
+                &Direction::East,
+                &vec!['1', '2', '3']
+            )
             .unwrap());
         assert!(!grid
-            .matches_sequence(&Coordinate { x: 0, y: 0 }, &Direction::East, &vec!['1', '2', '4'])
+            .matches_sequence(
+                &Coordinate { x: 0, y: 0 },
+                &Direction::East,
+                &vec!['1', '2', '4']
+            )
             .unwrap());
     }
 
