@@ -1,4 +1,6 @@
 mod grid;
-pub mod template;
+mod point;
 
-pub use grid::{Coordinate, Direction, Grid};
+pub mod template;
+pub use point::{Direction, Point};
+
