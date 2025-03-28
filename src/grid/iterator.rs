@@ -21,22 +21,19 @@ impl <'a, T> GridIterator<'a, T> {
         }
     }
 
-    pub fn calculate_next_point(&self) -> Option<Point> {
-        self.current.as_ref().and_then(|current_point| {
-            let mut point = current_point.clone();
-            point.x += 1;
+    pub fn calculate_next_point(&mut self) {
+        let mut current = self.current.take().unwrap();
 
-            if point.x >= self.grid.width {
-                point.x = 0;
-                point.y += 1;
-            }
-
-            if point.y >= self.grid.height {
-                None
-            } else {
-                Some(point)
-            }
-        })
+        current.x += 1;
+        if current.x >= self.grid.width {
+            current.x = 0;
+            current.y += 1;
+        }
+        if current.y >= self.grid.height {
+            self.current = None;
+        } else {
+            self.current = Some(current);
+        }
     }
 
     pub fn with_points(mut self) -> impl Iterator<Item = (Option<Point>, T)> + 'a
@@ -57,7 +54,7 @@ impl <T> Iterator for GridIterator<'_, T> where T: Clone {
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(current) = &self.current {
             let value = self.grid.get(current);
-            self.current = self.calculate_next_point();
+            self.calculate_next_point();
             value
         } else {
             None
