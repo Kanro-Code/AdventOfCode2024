@@ -4,7 +4,6 @@ pub struct Point {
     pub y: isize,
 }
 
-
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Direction {
     North,
@@ -17,6 +16,20 @@ pub enum Direction {
     NorthWest,
 }
 
+impl Direction {
+    pub fn delta(&self) -> (isize, isize) {
+        match self {
+            Direction::North => (0, -1),
+            Direction::NorthEast => (1, -1),
+            Direction::East => (1, 0),
+            Direction::SouthEast => (1, 1),
+            Direction::South => (0, 1),
+            Direction::SouthWest => (-1, 1),
+            Direction::West => (-1, 0),
+            Direction::NorthWest => (-1, -1),
+        }
+    }
+}
 
 // #[derive(Debug, Clone, PartialEq, PartialOrd)]
 // pub struct Coordinate {

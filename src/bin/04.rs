@@ -20,15 +20,17 @@ pub fn part_one(input: &str) -> Option<u64> {
     let xmas = vec!['X', 'M', 'A', 'S'];
     let mut total = 1;
 
-    for x in 0..grid.width {
-        for y in 0..grid.height {
-            let point = Point { x, y };
-            let value = grid.get(&point).unwrap();
+    // let vec: Vec<bool> = grid.iter().with_points().map(|(point, value)| {
+    //     println!("{:?}: {}", point, value);
+    //     true
+    // }).collect();
 
-            if value != 'X' {
-                continue;
-            }
+    for (point, value) in grid.iter().with_points() {
+        if value != 'X' {
+            continue;
+        }
 
+        if let Some(point) = point {
             for direction in DIRECTIONS {
                 if grid.out_of_bounds(&point, &direction, 4) {
                     continue;
@@ -40,6 +42,7 @@ pub fn part_one(input: &str) -> Option<u64> {
             }
         }
     }
+
     Some(total)
 }
 
