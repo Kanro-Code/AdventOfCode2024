@@ -1,10 +1,10 @@
-use advent_of_code::{Coordinate, Grid};
+use advent_of_code::{Point, Grid};
 
 advent_of_code::solution!(6);
 
 pub fn part_one(_input: &str) -> Option<u64> {
-    let (player, grid) = parse_input(_input);
-    println!("{player:?} {grid:?}");
+    // let (player, grid) = parse_input(_input);
+    // println!("{player:?} {grid:?}");
     None
 }
 
@@ -12,26 +12,34 @@ pub fn part_two(_input: &str) -> Option<u64> {
     None
 }
 
-pub fn parse_input(input: &str) -> (Coordinate, Grid<bool>) {
-    let mut player: Coordinate = Coordinate { x: usize::MAX, y: usize::MAX };
+// pub fn parse_input(input: &str) -> (Point, Grid<bool>) {
+//     let mut player: Point = Point {
+//         x: isize::MAX,
+//         y: isize::MAX,
+//     };
 
-    let ves: Vec<Vec<bool>> = input
-        .lines().enumerate()
-        .map(|(y, line)| {
-            line.chars().enumerate().map(|(x, c)| {
-                if c == '#' {
-                    return true;
-                } else if c == '^' {
-                    player = Coordinate { x, y };
-                    return true;
-                }
-                false
-            }).collect()
-        }).collect();
+//     let ves: Vec<Vec<bool>> = input
+//         .lines()
+//         .enumerate()
+//         .map(|(y, line)| {
+//             line.chars()
+//                 .enumerate()
+//                 .map(|(x, c)| {
+//                     if c == '#' {
+//                         return true;
+//                     } else if c == '^' {
+//                         player = Point { x, y };
+//                         return true;
+//                     }
+//                     false
+//                 })
+//                 .collect()
+//         })
+//         .collect();
 
-    let grid = Grid::new(ves);
-    (player, grid)
-}
+//     let grid = Grid::new(ves);
+//     (player, grid)
+// }
 
 #[cfg(test)]
 mod tests {

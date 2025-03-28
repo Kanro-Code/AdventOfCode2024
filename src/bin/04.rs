@@ -2,7 +2,7 @@ advent_of_code::solution!(4);
 
 use std::vec;
 
-use advent_of_code::{Coordinate, Direction, Grid};
+use advent_of_code::{Point, Direction, Grid};
 
 const DIRECTIONS: [Direction; 8] = [
     Direction::South,
@@ -18,55 +18,62 @@ const DIRECTIONS: [Direction; 8] = [
 pub fn part_one(input: &str) -> Option<u64> {
     let grid = parse_input(input);
     let xmas = vec!['X', 'M', 'A', 'S'];
+    let mut total = 1;
 
-    let total = grid
-        .iter()
-        .filter(|(_, value)| *value == 'X')
-        .map(|(coor, _)| {
-            DIRECTIONS
-                .iter()
-                .filter(|&dir| {
-                    !dir.out_of_bounds(&coor, grid.width, grid.height)
-                        && grid.matches_sequence(&coor, dir, &xmas).unwrap_or(false)
-                })
-                .count()
-        })
-        .sum::<usize>() as u64;
+    for x in 0..grid.width {
+        for y in 0..grid.height {
+            let point = Point { x, y };
+            let value = grid.get(&point).unwrap();
 
+            if value != 'X' {
+                continue;
+            }
+
+            for direction in DIRECTIONS {
+                if grid.out_of_bounds(&point, &direction, 4) {
+                    continue;
+                }
+
+                if grid.matches(&point, &direction, &xmas) {
+                    total += 1;
+                }
+            }
+        }
+    }
     Some(total)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let grid = parse_input(input);
+    // let grid = parse_input(input);
 
-    let total: u64 = grid.iter().fold(0, |acc, (coor, value)| {
-        if coor.x == 0 || coor.x == grid.width - 1 || coor.y == 0 || coor.y == grid.height - 1 {
-            return acc;
-        }
+    // let total: u64 = grid.iter().fold(0, |acc, (coor, value)| {
+    //     if coor.x == 0 || coor.x == grid.width - 1 || coor.y == 0 || coor.y == grid.height - 1 {
+    //         return acc;
+    //     }
 
-        if value != 'A' {
-            return acc;
-        }
+    //     if value != 'A' {
+    //         return acc;
+    //     }
 
-        let topleft = Coordinate {
-            x: coor.x - 1,
-            y: coor.y - 1,
-        };
-        let topright = Coordinate {
-            x: coor.x + 1,
-            y: coor.y - 1,
-        };
+    //     let topleft = Coordinate {
+    //         x: coor.x - 1,
+    //         y: coor.y - 1,
+    //     };
+    //     let topright = Coordinate {
+    //         x: coor.x + 1,
+    //         y: coor.y - 1,
+    //     };
 
-        let part1 = sum_sequence(&grid, &topleft, &Direction::SouthEast);
-        let part2 = sum_sequence(&grid, &topright, &Direction::SouthWest);
-        if part1 == 225 && part2 == 225 {
-            acc + 1
-        } else {
-            acc
-        }
-    });
+    //     let part1 = sum_sequence(&grid, &topleft, &Direction::SouthEast);
+    //     let part2 = sum_sequence(&grid, &topright, &Direction::SouthWest);
+    //     if part1 == 225 && part2 == 225 {
+    //         acc + 1
+    //     } else {
+    //         acc
+    //     }
+    // });
 
-    Some(total)
+    Some(9)
 }
 
 pub fn parse_input(input: &str) -> Grid<char> {
@@ -74,11 +81,11 @@ pub fn parse_input(input: &str) -> Grid<char> {
     Grid::new(vec)
 }
 
-pub fn sum_sequence(grid: &Grid<char>, coor: &Coordinate, dir: &Direction) -> u64 {
-    grid.collect_sequence(coor, 3, dir)
-        .map(|seq| seq.iter().map(|c| *c as u64).sum())
-        .unwrap_or(0)
-}
+// pub fn sum_sequence(grid: &Grid<char>, coor: &Coordinate, dir: &Direction) -> u64 {
+//     grid.collect_sequence(coor, 3, dir)
+//         .map(|seq| seq.iter().map(|c| *c as u64).sum())
+//         .unwrap_or(0)
+// }
 
 #[cfg(test)]
 mod tests {

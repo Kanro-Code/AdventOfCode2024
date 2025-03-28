@@ -1,4 +1,4 @@
-use crate::{Point, Direction};
+use crate::{Point, Direction, GridIterator};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Grid<T> {
@@ -7,13 +7,19 @@ pub struct Grid<T> {
     cells: Vec<Vec<T>>,
 }
 
-impl <T> Grid<T> {
+impl <T> Grid<T> where T: Clone {
     pub fn new(input: Vec<Vec<T>>) -> Grid<T> {
         Self {
             width: input[0].len() as isize,
             height: input.len() as isize,
             cells: input,
         }
+    }
+
+    pub fn get(&self, point: &Point) -> Option<T> {
+        self.cells
+            .get(point.y as usize)
+            .and_then(|row| row.get(point.x as usize).cloned())
     }
 
     pub fn matches(&self, point: &Point, direction: &Direction, expected: &Vec<T>) -> bool {
@@ -25,58 +31,10 @@ impl <T> Grid<T> {
     }
 
     pub fn iter(&self) -> GridIterator<T> {
-        unimplemented!()
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct GridIterator<'a, T> {
-    grid: &'a Grid<T>,
-    point: Point,
-    next: Option<Point>,
-}
-
-impl <'a, T> GridIterator<'a, T> {
-    pub fn new(grid: &'a Grid<T>) -> Self {
-        let mut iter = Self {
-            grid,
-            point: Point { x: 0, y: 0 },
-            next: None,
-        };
-
-        iter.next = iter.calculate_next_point();
-        iter
+        GridIterator::new(self)
     }
 
-    pub fn current_point(&self) -> &Point {
-        &self.point
-    }
-
-    pub fn next_point(&self) -> &Option<Point> {
-        &self.next
-    }
-
-    pub fn calculate_next_point(&self) -> Option<Point> {
-        let mut next = self.point.clone();
-
-        next.x += 1;
-
-        if next.x == self.grid.width {
-            next.x = 0;
-            next.y += 1;
-        }
-
-        if next.y == self.grid.height {
-            None
-        } else {
-            Some(next)
-        }
-    }
-}
-
-impl <T> Iterator for GridIterator<'_, T> {
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> {
+    pub fn out_of_bounds(&self, point: &Point, direction: &Direction, distance: isize) -> bool {
         unimplemented!()
     }
 }
