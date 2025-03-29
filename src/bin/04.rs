@@ -2,7 +2,7 @@ advent_of_code::solution!(4);
 
 use std::vec;
 
-use advent_of_code::{Direction, Grid};
+use advent_of_code::{Point, Direction, Grid};
 
 const DIRECTIONS: [Direction; 8] = [
     Direction::South,
@@ -83,6 +83,12 @@ pub fn parse_input(input: &str) -> Grid<char> {
     let vec: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
     Grid::new(vec)
 }
+
+// pub fn sum_sequence(grid: &Grid<char>, coor: &Coordinate, dir: &Direction) -> u64 {
+//     grid.collect_sequence(coor, 3, dir)
+//         .map(|seq| seq.iter().map(|c| *c as u64).sum())
+//         .unwrap_or(0)
+// }
 
 #[cfg(test)]
 mod tests {

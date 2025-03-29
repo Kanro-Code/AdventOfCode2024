@@ -1,4 +1,4 @@
-use advent_of_code::{Grid, Point};
+use advent_of_code::{Point, Grid};
 
 advent_of_code::solution!(6);
 
