@@ -67,13 +67,11 @@ where
         std::iter::from_fn(move || {
             let point = self.current;
 
-            self.next().map(|value| {
-                (point.unwrap(), value)
-            })
+            self.next().map(|value| (point.unwrap(), value))
         })
     }
 
-    pub fn custom(mut self, direction: Direction, point: Point) -> Self {
+    pub fn in_direction(mut self, direction: Direction, point: Point) -> Self {
         self.direction = Some(direction);
         self.current = Some(point);
         self
@@ -86,7 +84,7 @@ where
 {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(current) = &self.current {
+        if let Some(current) = self.current {
             let value = self.grid.get(current);
             self.calculate_next_point();
             Some(value)
@@ -124,7 +122,6 @@ mod tests {
         assert_eq!(iter.next(), Some(7));
         assert_eq!(iter.next(), Some(8));
         assert_eq!(iter.next(), Some(9));
-
     }
 
     #[test]
@@ -147,7 +144,7 @@ mod tests {
         let grid = Grid::new(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
         let mut iter = grid
             .iter()
-            .custom(Direction::SouthEast, Point { x: 0, y: 0 });
+            .in_direction(Direction::SouthEast, Point { x: 0, y: 0 });
         assert_eq!(iter.next(), Some(1));
         assert_eq!(iter.current, Some(Point { x: 1, y: 1 }));
         assert_eq!(iter.next(), Some(5));

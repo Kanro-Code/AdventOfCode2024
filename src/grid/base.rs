@@ -20,7 +20,7 @@ where
         }
     }
 
-    pub fn get(&self, point: &Point) -> T {
+    pub fn get(&self, point: Point) -> T {
         self.cells[point.y as usize][point.x as usize]
     }
 
@@ -29,21 +29,21 @@ where
     }
 
     pub fn matches(&self, point: Point, direction: Direction, expected: &[T]) -> bool {
-        let mut iter = self.iter()
-            .custom(direction, point)
+        let mut iter = self
+            .iter()
+            .in_direction(direction, point)
             .take(expected.len());
 
-        expected.iter().all(|e| {
-            match iter.next() {
-                Some(value) => value == *e,
-                None => false,
-            }
+        expected.iter().all(|e| match iter.next() {
+            Some(value) => value == *e,
+            None => false,
         })
     }
 
     pub fn get_values(&self, start: Point, direction: Direction, distance: usize) -> Vec<T> {
-        let values: Vec<T> = self.iter()
-            .custom(direction, start)
+        let values: Vec<T> = self
+            .iter()
+            .in_direction(direction, start)
             .take(distance)
             .collect();
 
@@ -109,8 +109,6 @@ mod tests {
 
         let point = Point { x: 0, y: -1 };
         assert!(grid.out_of_bounds(&point));
-
-
     }
 
     #[test]
