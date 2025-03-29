@@ -15,7 +15,7 @@ pub struct GridIterator<'a, T> {
 
 impl<'a, T> GridIterator<'a, T>
 where
-    T: PartialEq + Copy + Debug,
+    T: PartialEq + Copy + Debug + Default,
 {
     pub fn new(grid: &'a Grid<T>) -> Self {
         Self {
@@ -62,7 +62,7 @@ where
 
     pub fn with_points(mut self) -> impl Iterator<Item = (Point, T)> + 'a
     where
-        T: Clone,
+        T: PartialEq + Copy + Debug + Default,
     {
         std::iter::from_fn(move || {
             let point = self.current;
@@ -80,7 +80,7 @@ where
 
 impl<T> Iterator for GridIterator<'_, T>
 where
-    T: Copy + PartialEq + Debug,
+    T: Copy + PartialEq + Debug + Default,
 {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {

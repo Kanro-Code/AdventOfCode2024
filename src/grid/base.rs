@@ -10,7 +10,7 @@ pub struct Grid<T> {
 
 impl<T> Grid<T>
 where
-    T: Copy + PartialEq + Debug,
+    T: Copy + PartialEq + Debug + Default,
 {
     pub fn new(input: Vec<Vec<T>>) -> Grid<T> {
         Self {
@@ -20,11 +20,23 @@ where
         }
     }
 
+    pub fn new_empty(width: isize, height: isize) -> Grid<T> {
+        let mut cells = Vec::with_capacity(height as usize);
+        for _ in 0..height {
+            cells.push(vec![T::default(); width as usize]);
+        }
+        Self {
+            width,
+            height,
+            cells,
+        }
+    }
+
     pub fn get(&self, point: Point) -> T {
         self.cells[point.y as usize][point.x as usize]
     }
 
-    pub fn set(&mut self, point: &Point, value: T) {
+    pub fn set(&mut self, point: Point, value: T) {
         self.cells[point.y as usize][point.x as usize] = value;
     }
 
