@@ -1,4 +1,5 @@
 use crate::{Direction, Grid, Point};
+use std::fmt::Debug;
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
@@ -14,7 +15,7 @@ pub struct GridIterator<'a, T> {
 
 impl<'a, T> GridIterator<'a, T>
 where
-    T: Clone + PartialEq + std::fmt::Debug,
+    T: PartialEq + Copy + Debug,
 {
     pub fn new(grid: &'a Grid<T>) -> Self {
         Self {
@@ -59,13 +60,16 @@ where
         }
     }
 
-    pub fn with_points(mut self) -> impl Iterator<Item = (Option<Point>, &'a T)> + 'a
+    pub fn with_points(mut self) -> impl Iterator<Item = (Point, T)> + 'a
     where
         T: Clone,
     {
         std::iter::from_fn(move || {
-            let point = self.current.clone();
-            self.next().map(|value| (point, value))
+            let point = self.current;
+
+            self.next().map(|value| {
+                (point.unwrap(), value)
+            })
         })
     }
 
@@ -76,11 +80,11 @@ where
     }
 }
 
-impl<'a, T> Iterator for GridIterator<'a, T>
+impl<T> Iterator for GridIterator<'_, T>
 where
-    T: Clone + PartialEq + std::fmt::Debug,
+    T: Copy + PartialEq + Debug,
 {
-    type Item = &'a T;
+    type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(current) = &self.current {
             let value = self.grid.get(current);
@@ -109,17 +113,17 @@ mod tests {
         let mut iter = grid.iter();
         assert_eq!(iter.current, Some(Point { x: 0, y: 0 }));
 
-        assert_eq!(iter.next(), Some(&1));
+        assert_eq!(iter.next(), Some(1));
         assert_eq!(iter.current, Some(Point { x: 1, y: 0 }));
 
-        assert_eq!(iter.next(), Some(&2));
-        assert_eq!(iter.next(), Some(&3));
-        assert_eq!(iter.next(), Some(&4));
-        assert_eq!(iter.next(), Some(&5));
-        assert_eq!(iter.next(), Some(&6));
-        assert_eq!(iter.next(), Some(&7));
-        assert_eq!(iter.next(), Some(&8));
-        assert_eq!(iter.next(), Some(&9));
+        assert_eq!(iter.next(), Some(2));
+        assert_eq!(iter.next(), Some(3));
+        assert_eq!(iter.next(), Some(4));
+        assert_eq!(iter.next(), Some(5));
+        assert_eq!(iter.next(), Some(6));
+        assert_eq!(iter.next(), Some(7));
+        assert_eq!(iter.next(), Some(8));
+        assert_eq!(iter.next(), Some(9));
 
     }
 
@@ -127,15 +131,15 @@ mod tests {
     pub fn test_grid_iterator_with_points() {
         let grid = Grid::new(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
         let mut iter = grid.iter().with_points();
-        assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 0 }), &1)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 0 }), &2)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 0 }), &3)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 1 }), &4)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 1 }), &5)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 1 }), &6)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 2 }), &7)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 2 }), &8)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 2 }), &9)));
+        assert_eq!(iter.next(), Some((Point { x: 0, y: 0 }, 1)));
+        assert_eq!(iter.next(), Some((Point { x: 1, y: 0 }, 2)));
+        assert_eq!(iter.next(), Some((Point { x: 2, y: 0 }, 3)));
+        assert_eq!(iter.next(), Some((Point { x: 0, y: 1 }, 4)));
+        assert_eq!(iter.next(), Some((Point { x: 1, y: 1 }, 5)));
+        assert_eq!(iter.next(), Some((Point { x: 2, y: 1 }, 6)));
+        assert_eq!(iter.next(), Some((Point { x: 0, y: 2 }, 7)));
+        assert_eq!(iter.next(), Some((Point { x: 1, y: 2 }, 8)));
+        assert_eq!(iter.next(), Some((Point { x: 2, y: 2 }, 9)));
     }
 
     #[test]
@@ -144,11 +148,11 @@ mod tests {
         let mut iter = grid
             .iter()
             .custom(Direction::SouthEast, Point { x: 0, y: 0 });
-        assert_eq!(iter.next(), Some(&1));
+        assert_eq!(iter.next(), Some(1));
         assert_eq!(iter.current, Some(Point { x: 1, y: 1 }));
-        assert_eq!(iter.next(), Some(&5));
+        assert_eq!(iter.next(), Some(5));
         assert_eq!(iter.current, Some(Point { x: 2, y: 2 }));
-        assert_eq!(iter.next(), Some(&9));
+        assert_eq!(iter.next(), Some(9));
         assert_eq!(iter.current, None);
     }
 }

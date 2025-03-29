@@ -21,15 +21,13 @@ pub fn part_one(input: &str) -> Option<u64> {
     let mut total = 0;
 
     for (point, value) in grid.iter().with_points() {
-        if value != &'X' {
+        if value != 'X' {
             continue;
         }
 
-        if let Some(point) = point {
-            for direction in DIRECTIONS {
-                if grid.matches(point, direction, &xmas) {
-                    total += 1;
-                }
+        for direction in DIRECTIONS {
+            if grid.matches(point, direction, &xmas) {
+                total += 1;
             }
         }
     }
@@ -74,12 +72,6 @@ pub fn parse_input(input: &str) -> Grid<char> {
     let vec: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
     Grid::new(vec)
 }
-
-// pub fn sum_sequence(grid: &Grid<char>, coor: &Coordinate, dir: &Direction) -> u64 {
-//     grid.collect_sequence(coor, 3, dir)
-//         .map(|seq| seq.iter().map(|c| *c as u64).sum())
-//         .unwrap_or(0)
-// }
 
 #[cfg(test)]
 mod tests {

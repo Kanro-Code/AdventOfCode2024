@@ -1,4 +1,5 @@
 use crate::{Direction, GridIterator, Point};
+use std::fmt::Debug;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Grid<T> {
@@ -9,7 +10,7 @@ pub struct Grid<T> {
 
 impl<T> Grid<T>
 where
-    T: Clone + PartialEq + std::fmt::Debug,
+    T: Copy + PartialEq + Debug,
 {
     pub fn new(input: Vec<Vec<T>>) -> Grid<T> {
         Self {
@@ -19,8 +20,8 @@ where
         }
     }
 
-    pub fn get(&self, point: &Point) -> &T {
-        &self.cells[point.y as usize][point.x as usize]
+    pub fn get(&self, point: &Point) -> T {
+        self.cells[point.y as usize][point.x as usize]
     }
 
     pub fn set(&mut self, point: &Point, value: T) {
@@ -34,14 +35,14 @@ where
 
         expected.iter().all(|e| {
             match iter.next() {
-                Some(value) => value == e,
+                Some(value) => value == *e,
                 None => false,
             }
         })
     }
 
-    pub fn get_values(&self, start: Point, direction: Direction, distance: usize) -> Vec<&T> {
-        let values: Vec<&T> = self.iter()
+    pub fn get_values(&self, start: Point, direction: Direction, distance: usize) -> Vec<T> {
+        let values: Vec<T> = self.iter()
             .custom(direction, start)
             .take(distance)
             .collect();
@@ -156,17 +157,17 @@ mod tests {
         let grid = Grid::new(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
         let point = Point { x: 0, y: 0 };
         let direction = Direction::East;
-        let expected = vec![&1, &2, &3];
+        let expected = vec![1, 2, 3];
         assert_eq!(grid.get_values(point, direction, 3), expected);
 
         let point = Point { x: 0, y: 0 };
         let direction = Direction::South;
-        let expected = vec![&1, &4, &7];
+        let expected = vec![1, 4, 7];
 
         assert_eq!(grid.get_values(point, direction, 3), expected);
         let point = Point { x: 0, y: 0 };
         let direction = Direction::SouthEast;
-        let expected = vec![&1, &5, &9];
+        let expected = vec![1, 5, 9];
         assert_eq!(grid.get_values(point, direction, 3), expected);
     }
 
