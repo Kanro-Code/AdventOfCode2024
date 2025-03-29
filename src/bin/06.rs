@@ -1,5 +1,3 @@
-use advent_of_code::{Point, Grid};
-
 advent_of_code::solution!(6);
 
 pub fn part_one(_input: &str) -> Option<u64> {

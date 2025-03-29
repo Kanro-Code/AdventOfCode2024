@@ -2,7 +2,7 @@ advent_of_code::solution!(4);
 
 use std::vec;
 
-use advent_of_code::{Point, Direction, Grid};
+use advent_of_code::{Direction, Grid};
 
 const DIRECTIONS: [Direction; 8] = [
     Direction::South,
@@ -18,12 +18,7 @@ const DIRECTIONS: [Direction; 8] = [
 pub fn part_one(input: &str) -> Option<u64> {
     let grid = parse_input(input);
     let xmas = vec!['X', 'M', 'A', 'S'];
-    let mut total = 1;
-
-    // let vec: Vec<bool> = grid.iter().with_points().map(|(point, value)| {
-    //     println!("{:?}: {}", point, value);
-    //     true
-    // }).collect();
+    let mut total = 0;
 
     for (point, value) in grid.iter().with_points() {
         if value != 'X' {
@@ -32,10 +27,6 @@ pub fn part_one(input: &str) -> Option<u64> {
 
         if let Some(point) = point {
             for direction in DIRECTIONS {
-                if grid.out_of_bounds(&point, &direction, 4) {
-                    continue;
-                }
-
                 if grid.matches(&point, &direction, &xmas) {
                     total += 1;
                 }

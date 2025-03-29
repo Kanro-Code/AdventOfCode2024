@@ -1,4 +1,4 @@
-use crate::{Grid, Point, Direction};
+use crate::{Direction, Grid, Point};
 
 // ------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------
@@ -12,7 +12,10 @@ pub struct GridIterator<'a, T> {
     direction: Option<Direction>,
 }
 
-impl <'a, T> GridIterator<'a, T> {
+impl<'a, T> GridIterator<'a, T>
+where
+    T: Clone + PartialEq + std::fmt::Debug,
+{
     pub fn new(grid: &'a Grid<T>) -> Self {
         Self {
             grid,
@@ -22,17 +25,37 @@ impl <'a, T> GridIterator<'a, T> {
     }
 
     pub fn calculate_next_point(&mut self) {
-        let mut current = self.current.take().unwrap();
+        let new = self.current.take().unwrap();
 
-        current.x += 1;
-        if current.x >= self.grid.width {
-            current.x = 0;
-            current.y += 1;
+        if self.direction.is_none() {
+            self.simple_walk(new);
+        } else {
+            self.complex_direction(new);
         }
-        if current.y >= self.grid.height {
+    }
+
+    fn simple_walk(&mut self, mut new: Point) {
+        new.x += 1;
+        if new.x >= self.grid.width {
+            new.x = 0;
+            new.y += 1;
+        }
+        if new.y >= self.grid.height {
             self.current = None;
         } else {
-            self.current = Some(current);
+            self.current = Some(new);
+        }
+    }
+
+    fn complex_direction(&mut self, mut new: Point) {
+        let (dx, dy) = self.direction.as_ref().unwrap().delta();
+        new.x += dx;
+        new.y += dy;
+
+        if self.grid.out_of_bounds(&new) {
+            self.current = None;
+        } else {
+            self.current = Some(new);
         }
     }
 
@@ -42,14 +65,21 @@ impl <'a, T> GridIterator<'a, T> {
     {
         std::iter::from_fn(move || {
             let point = self.current.clone();
-            self.next().map(|value| {
-                (point, value)
-            })
+            self.next().map(|value| (point, value))
         })
+    }
+
+    pub fn custom(mut self, direction: Direction, point: Point) -> Self {
+        self.direction = Some(direction);
+        self.current = Some(point);
+        self
     }
 }
 
-impl <T> Iterator for GridIterator<'_, T> where T: Clone {
+impl<T> Iterator for GridIterator<'_, T>
+where
+    T: Clone + PartialEq + std::fmt::Debug,
+{
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(current) = &self.current {
@@ -91,7 +121,6 @@ mod tests {
         assert_eq!(iter.next(), Some(8));
         assert_eq!(iter.next(), Some(9));
 
-
         let grid: Grid<bool> = Grid::new(vec![vec![]]);
         let iter = grid.iter();
         assert_eq!(iter.current, Some(Point { x: 0, y: 0 }));
@@ -114,5 +143,19 @@ mod tests {
         assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 2 }), 7)));
         assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 2 }), 8)));
         assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 2 }), 9)));
+    }
+
+    #[test]
+    pub fn test_grid_iter_with_direction() {
+        let grid = Grid::new(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
+        let mut iter = grid
+            .iter()
+            .custom(Direction::SouthEast, Point { x: 0, y: 0 });
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.current, Some(Point { x: 1, y: 1 }));
+        assert_eq!(iter.next(), Some(5));
+        assert_eq!(iter.current, Some(Point { x: 2, y: 2 }));
+        assert_eq!(iter.next(), Some(9));
+        assert_eq!(iter.current, None);
     }
 }
