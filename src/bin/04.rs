@@ -21,13 +21,13 @@ pub fn part_one(input: &str) -> Option<u64> {
     let mut total = 0;
 
     for (point, value) in grid.iter().with_points() {
-        if value != 'X' {
+        if value != &'X' {
             continue;
         }
 
         if let Some(point) = point {
             for direction in DIRECTIONS {
-                if grid.matches(&point, &direction, &xmas) {
+                if grid.matches(point, direction, &xmas) {
                     total += 1;
                 }
             }
@@ -40,7 +40,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 pub fn part_two(input: &str) -> Option<u64> {
     // let grid = parse_input(input);
 
-    // let total: u64 = grid.iter().fold(0, |acc, (coor, value)| {
+    // let total: u64 = grid.iter().with_points().fold(0, |acc, (coor, value)| {
     //     if coor.x == 0 || coor.x == grid.width - 1 || coor.y == 0 || coor.y == grid.height - 1 {
     //         return acc;
     //     }

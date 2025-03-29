@@ -19,34 +19,37 @@ where
         }
     }
 
-    pub fn get(&self, point: &Point) -> Option<T> {
-        self.cells
-            .get(point.y as usize)
-            .and_then(|row| row.get(point.x as usize).cloned())
+    pub fn get(&self, point: &Point) -> &T {
+        &self.cells[point.y as usize][point.x as usize]
     }
 
-    pub fn matches(&self, point: &Point, direction: &Direction, expected: &[T]) -> bool {
-        let mut iter = self.iter().custom(direction.clone(), point.clone());
+    pub fn set(&mut self, point: &Point, value: T) {
+        self.cells[point.y as usize][point.x as usize] = value;
+    }
 
-        for e in expected {
-            if let Some(value) = iter.next() {
-                if value != *e {
-                    return false;
-                }
-            } else {
-                return false;
+    pub fn matches(&self, point: Point, direction: Direction, expected: &[T]) -> bool {
+        let mut iter = self.iter()
+            .custom(direction, point)
+            .take(expected.len());
+
+        expected.iter().all(|e| {
+            match iter.next() {
+                Some(value) => value == e,
+                None => false,
             }
+        })
+    }
+
+    pub fn get_values(&self, start: Point, direction: Direction, distance: usize) -> Vec<&T> {
+        let values: Vec<&T> = self.iter()
+            .custom(direction, start)
+            .take(distance)
+            .collect();
+
+        if values.len() != distance {
+            panic!("Out of bounds");
         }
-
-        true
-    }
-
-    pub fn get_values(&self, _start: &Point, _direction: &Direction, _distance: isize) -> Vec<T> {
-        unimplemented!()
-    }
-
-    pub fn iter(&self) -> GridIterator<T> {
-        GridIterator::new(self)
+        values
     }
 
     pub fn out_of_bounds(&self, point: &Point) -> bool {
@@ -60,21 +63,9 @@ where
         false
     }
 
-    // pub fn out_of_bounds_travel(
-    //     &self,
-    //     point: &Point,
-    //     direction: &Direction,
-    //     distance: isize,
-    // ) -> bool {
-    //     let (dx, dy) = direction.delta();
-    //     let new_x = point.x + dx * (distance - 1);
-    //     let new_y = point.y + dy * (distance - 1);
-
-    //     let new_point = Point { x: new_x, y: new_y };
-    //     println!("{:?}", new_point);
-
-    //     self.out_of_bounds(&new_point)
-    // }
+    pub fn iter(&self) -> GridIterator<T> {
+        GridIterator::new(self)
+    }
 }
 
 #[cfg(test)]
@@ -127,36 +118,64 @@ mod tests {
         let point = Point { x: 0, y: 0 };
         let direction = Direction::East;
         let expected = vec![1, 2, 3];
-        assert!(grid.matches(&point, &direction, &expected));
+        assert!(grid.matches(point, direction, &expected));
 
         let point = Point { x: 0, y: 0 };
         let direction = Direction::South;
         let expected = vec![1, 4, 7];
-        assert!(grid.matches(&point, &direction, &expected));
+        assert!(grid.matches(point, direction, &expected));
 
         let point = Point { x: 0, y: 0 };
         let direction = Direction::SouthEast;
         let expected = vec![1, 5, 9];
-        assert!(grid.matches(&point, &direction, &expected));
+        assert!(grid.matches(point, direction, &expected));
 
         let point = Point { x: 0, y: 0 };
         let direction = Direction::NorthWest;
         let expected = vec![1, 2, 3];
-        assert!(!grid.matches(&point, &direction, &expected));
+        assert!(!grid.matches(point, direction, &expected));
 
         let point = Point { x: 0, y: 0 };
         let direction = Direction::SouthWest;
         let expected = vec![1, 4, 7];
-        assert!(!grid.matches(&point, &direction, &expected));
+        assert!(!grid.matches(point, direction, &expected));
 
         let point = Point { x: 2, y: 2 };
         let direction = Direction::North;
         let expected = vec![9];
-        assert!(grid.matches(&point, &direction, &expected));
+        assert!(grid.matches(point, direction, &expected));
 
         let point = Point { x: 2, y: 2 };
         let direction = Direction::South;
         let expected = vec![9];
-        assert!(grid.matches(&point, &direction, &expected));
+        assert!(grid.matches(point, direction, &expected));
+    }
+
+    #[test]
+    pub fn test_get_values() {
+        let grid = Grid::new(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
+        let point = Point { x: 0, y: 0 };
+        let direction = Direction::East;
+        let expected = vec![&1, &2, &3];
+        assert_eq!(grid.get_values(point, direction, 3), expected);
+
+        let point = Point { x: 0, y: 0 };
+        let direction = Direction::South;
+        let expected = vec![&1, &4, &7];
+
+        assert_eq!(grid.get_values(point, direction, 3), expected);
+        let point = Point { x: 0, y: 0 };
+        let direction = Direction::SouthEast;
+        let expected = vec![&1, &5, &9];
+        assert_eq!(grid.get_values(point, direction, 3), expected);
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn test_get_values_out_of_bounds() {
+        let grid = Grid::new(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
+        let point = Point { x: 0, y: 0 };
+        let direction = Direction::East;
+        grid.get_values(point, direction, 4);
     }
 }

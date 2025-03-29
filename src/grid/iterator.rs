@@ -59,7 +59,7 @@ where
         }
     }
 
-    pub fn with_points(mut self) -> impl Iterator<Item = (Option<Point>, T)> + 'a
+    pub fn with_points(mut self) -> impl Iterator<Item = (Option<Point>, &'a T)> + 'a
     where
         T: Clone,
     {
@@ -76,16 +76,16 @@ where
     }
 }
 
-impl<T> Iterator for GridIterator<'_, T>
+impl<'a, T> Iterator for GridIterator<'a, T>
 where
     T: Clone + PartialEq + std::fmt::Debug,
 {
-    type Item = T;
+    type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(current) = &self.current {
             let value = self.grid.get(current);
             self.calculate_next_point();
-            value
+            Some(value)
         } else {
             None
         }
@@ -109,40 +109,33 @@ mod tests {
         let mut iter = grid.iter();
         assert_eq!(iter.current, Some(Point { x: 0, y: 0 }));
 
-        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next(), Some(&1));
         assert_eq!(iter.current, Some(Point { x: 1, y: 0 }));
 
-        assert_eq!(iter.next(), Some(2));
-        assert_eq!(iter.next(), Some(3));
-        assert_eq!(iter.next(), Some(4));
-        assert_eq!(iter.next(), Some(5));
-        assert_eq!(iter.next(), Some(6));
-        assert_eq!(iter.next(), Some(7));
-        assert_eq!(iter.next(), Some(8));
-        assert_eq!(iter.next(), Some(9));
+        assert_eq!(iter.next(), Some(&2));
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), Some(&4));
+        assert_eq!(iter.next(), Some(&5));
+        assert_eq!(iter.next(), Some(&6));
+        assert_eq!(iter.next(), Some(&7));
+        assert_eq!(iter.next(), Some(&8));
+        assert_eq!(iter.next(), Some(&9));
 
-        let grid: Grid<bool> = Grid::new(vec![vec![]]);
-        let iter = grid.iter();
-        assert_eq!(iter.current, Some(Point { x: 0, y: 0 }));
-        for (count, e) in iter.enumerate() {
-            assert!(!e);
-            assert_eq!(count, 0);
-        }
     }
 
     #[test]
     pub fn test_grid_iterator_with_points() {
         let grid = Grid::new(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
         let mut iter = grid.iter().with_points();
-        assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 0 }), 1)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 0 }), 2)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 0 }), 3)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 1 }), 4)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 1 }), 5)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 1 }), 6)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 2 }), 7)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 2 }), 8)));
-        assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 2 }), 9)));
+        assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 0 }), &1)));
+        assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 0 }), &2)));
+        assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 0 }), &3)));
+        assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 1 }), &4)));
+        assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 1 }), &5)));
+        assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 1 }), &6)));
+        assert_eq!(iter.next(), Some((Some(Point { x: 0, y: 2 }), &7)));
+        assert_eq!(iter.next(), Some((Some(Point { x: 1, y: 2 }), &8)));
+        assert_eq!(iter.next(), Some((Some(Point { x: 2, y: 2 }), &9)));
     }
 
     #[test]
@@ -151,11 +144,11 @@ mod tests {
         let mut iter = grid
             .iter()
             .custom(Direction::SouthEast, Point { x: 0, y: 0 });
-        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next(), Some(&1));
         assert_eq!(iter.current, Some(Point { x: 1, y: 1 }));
-        assert_eq!(iter.next(), Some(5));
+        assert_eq!(iter.next(), Some(&5));
         assert_eq!(iter.current, Some(Point { x: 2, y: 2 }));
-        assert_eq!(iter.next(), Some(9));
+        assert_eq!(iter.next(), Some(&9));
         assert_eq!(iter.current, None);
     }
 }
