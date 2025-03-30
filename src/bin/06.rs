@@ -27,10 +27,7 @@ pub fn visited_route(start: Point, grid: &Grid<bool>) -> Grid<bool> {
     let mut current = start;
 
     'outer: for direction in DIRECTIONS.iter().cycle() {
-        let mut iter = grid
-            .iter()
-            .in_direction(*direction, current)
-            .with_points();
+        let mut iter = grid.iter().in_direction(*direction, current).with_points();
 
         loop {
             if let Some((point, wall)) = iter.next() {
@@ -43,7 +40,7 @@ pub fn visited_route(start: Point, grid: &Grid<bool>) -> Grid<bool> {
                 break 'outer;
             }
         }
-    };
+    }
 
     visited_cells
 }
