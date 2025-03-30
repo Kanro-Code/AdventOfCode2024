@@ -10,30 +10,8 @@ const DIRECTIONS: [Direction; 4] = [
 ];
 
 pub fn part_one(input: &str) -> Option<u64> {
-    let (player, grid) = parse_input(input);
-
-    let mut visited_cells = Grid::<bool>::new_empty(grid.width, grid.height);
-    visited_cells.set(player, true);
-
-    let mut iter = grid
-        .iter()
-        .in_direction(DIRECTIONS[0], player)
-        .with_points();
-    let mut turns = 0;
-    let mut previous: Point = player;
-
-    while let Some((point, wall)) = iter.next() {
-        if wall {
-            turns += 1;
-            iter = grid
-                .iter()
-                .in_direction(DIRECTIONS[turns % 4], previous)
-                .with_points();
-        } else {
-            visited_cells.set(point, true);
-            previous = point;
-        }
-    }
+    let (start, grid) = parse_input(input);
+    let visited_cells = visited_route(start, &grid);
 
     let total = visited_cells.iter().filter(|&x| x).count();
     Some(total as u64)
@@ -41,6 +19,33 @@ pub fn part_one(input: &str) -> Option<u64> {
 
 pub fn part_two(_input: &str) -> Option<u64> {
     None
+}
+
+pub fn visited_route(start: Point, grid: &Grid<bool>) -> Grid<bool> {
+    let mut visited_cells = Grid::<bool>::new_empty(grid.width, grid.height);
+
+    let mut current = start;
+
+    'outer: for direction in DIRECTIONS.iter().cycle() {
+        let mut iter = grid
+            .iter()
+            .in_direction(*direction, current)
+            .with_points();
+
+        loop {
+            if let Some((point, wall)) = iter.next() {
+                if wall {
+                    break;
+                }
+                visited_cells.set(point, true);
+                current = point;
+            } else {
+                break 'outer;
+            }
+        }
+    };
+
+    visited_cells
 }
 
 pub fn parse_input(input: &str) -> (Point, Grid<bool>) {
