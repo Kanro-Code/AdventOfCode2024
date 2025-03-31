@@ -10,8 +10,8 @@ const DIRECTIONS: [Direction; 4] = [
 ];
 
 pub fn part_one(input: &str) -> Option<u64> {
-    let (start, grid) = parse_input(input);
-    let (visited_cells, _) = visited_route(start, &grid);
+    let (start, walls) = parse_input(input);
+    let visited_cells = visited_route(start, &walls);
 
     let total = visited_cells.iter().filter(|&x| x).count();
     Some(total as u64)
@@ -19,7 +19,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 
 pub fn part_two(input: &str) -> Option<u64> {
     let (start,mut grid) = parse_input(input);
-    let (visited_cells, _) = visited_route(start, &grid);
+    let visited_cells = visited_route(start, &grid);
 
     let total = visited_cells
         .iter()
@@ -27,51 +27,70 @@ pub fn part_two(input: &str) -> Option<u64> {
         .filter(|(current, value)| (*value && *current != start))
         .filter(|(current, _)| {
             grid.set(*current, true);
-            let (_, outcome) = visited_route(start, &grid);
+            let count = is_circular_route(start, &grid);
             grid.set(*current, false);
 
-            outcome
+            count
         })
         .count() as u64;
 
     Some(total)
 }
 
-pub fn visited_route(start: Point, grid: &Grid<bool>) -> (Grid<bool>, bool) {
-    let mut visited_cells = Grid::<bool>::new_empty(grid.width, grid.height);
+type PointProcessor<T> = fn(Point, &mut T);
 
-    let mut current = start;
-    let mut circular = false;
-    let mut count = 0;
+pub fn walk_route<T>(start: Point, walls: &Grid<bool>, state: &mut T, processor: PointProcessor<T>) {
+    let mut next = start;
+
+    let mut TEMP_COUNTER = 0;
+
+    processor(next, state);
 
     'outer: for direction in DIRECTIONS.iter().cycle() {
-        let mut iter = grid.iter().in_direction(*direction, current).with_points();
+        let mut iter = walls.iter().in_direction(*direction, next).with_points();
 
         loop {
-            count += 1;
-            if count > 10000 {
-                circular = true;
-                break 'outer;
-            }
-            if let Some((point, wall)) = iter.next() {
+            if let Some((current, wall)) = iter.next() {
+                TEMP_COUNTER += 1;
+                if TEMP_COUNTER > 100000 {
+                    break 'outer;
+                }
                 if wall {
                     break;
                 }
-                visited_cells.set(point, true);
-                current = point;
+                processor(current, state);
+                next = current;
             } else {
                 break 'outer;
             }
         }
     }
+}
 
-    (visited_cells, circular)
+pub fn visited_route(start: Point, walls: &Grid<bool>) -> Grid<bool> {
+    let mut visited_cells = Grid::<bool>::new_empty(walls.width, walls.height);
+
+    walk_route(start, walls, &mut visited_cells, |point, visited_cells| {
+        visited_cells.set(point, true);
+    });
+
+    visited_cells
+}
+
+pub fn is_circular_route(start: Point, walls: &Grid<bool>) -> bool {
+    let mut counter = 0;
+
+    walk_route(start, walls, &mut counter, |_, counter| {
+        *counter += 1;
+    });
+
+    counter > 20000
 }
 
 pub fn parse_input(input: &str) -> (Point, Grid<bool>) {
     let mut player = Point { x: 0, y: 0 };
 
-    let ves: Vec<Vec<bool>> = input
+    let walls: Vec<Vec<bool>> = input
         .lines()
         .enumerate()
         .map(|(y, line)| {
@@ -93,8 +112,8 @@ pub fn parse_input(input: &str) -> (Point, Grid<bool>) {
         })
         .collect();
 
-    let grid = Grid::new(ves);
-    (player, grid)
+    let walls_grid = Grid::new(walls);
+    (player, walls_grid)
 }
 
 #[cfg(test)]
