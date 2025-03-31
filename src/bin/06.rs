@@ -1,4 +1,5 @@
 use advent_of_code::{Direction, Grid, Point};
+use std::collections::HashSet;
 
 advent_of_code::solution!(6);
 
@@ -18,7 +19,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let (start,mut grid) = parse_input(input);
+    let (start, mut grid) = parse_input(input);
     let visited_cells = visited_route(start, &grid);
 
     let total = visited_cells
@@ -37,28 +38,28 @@ pub fn part_two(input: &str) -> Option<u64> {
     Some(total)
 }
 
-type PointProcessor<T> = fn(Point, &mut T);
+/// Returns true if the route is circular
+type PointProcessor<T> = fn(Point, Direction, &mut T) -> bool;
 
-pub fn walk_route<T>(start: Point, walls: &Grid<bool>, state: &mut T, processor: PointProcessor<T>) {
+pub fn walk_route<T>(
+    start: Point,
+    walls: &Grid<bool>,
+    state: &mut T,
+    processor: PointProcessor<T>,
+) {
     let mut next = start;
-
-    let mut TEMP_COUNTER = 0;
-
-    processor(next, state);
 
     'outer: for direction in DIRECTIONS.iter().cycle() {
         let mut iter = walls.iter().in_direction(*direction, next).with_points();
 
         loop {
             if let Some((current, wall)) = iter.next() {
-                TEMP_COUNTER += 1;
-                if TEMP_COUNTER > 100000 {
-                    break 'outer;
-                }
                 if wall {
                     break;
                 }
-                processor(current, state);
+                if processor(current, *direction, state) {
+                    break 'outer;
+                }
                 next = current;
             } else {
                 break 'outer;
@@ -70,21 +71,42 @@ pub fn walk_route<T>(start: Point, walls: &Grid<bool>, state: &mut T, processor:
 pub fn visited_route(start: Point, walls: &Grid<bool>) -> Grid<bool> {
     let mut visited_cells = Grid::<bool>::new_empty(walls.width, walls.height);
 
-    walk_route(start, walls, &mut visited_cells, |point, visited_cells| {
-        visited_cells.set(point, true);
-    });
+    walk_route(
+        start,
+        walls,
+        &mut visited_cells,
+        |point, _, visited_cells| {
+            visited_cells.set(point, true);
+            false
+        },
+    );
 
     visited_cells
 }
 
 pub fn is_circular_route(start: Point, walls: &Grid<bool>) -> bool {
-    let mut counter = 0;
+    struct Package {
+        visited: HashSet<(Point, Direction)>,
+        is_circular: bool,
+    }
 
-    walk_route(start, walls, &mut counter, |_, counter| {
-        *counter += 1;
-    });
+    fn process_point(point: Point, direction: Direction, state: &mut Package) -> bool {
+        if state.visited.contains(&(point, direction)) {
+            state.is_circular = true;
+            return true;
+        }
+        state.visited.insert((point, direction));
+        false
+    }
 
-    counter > 20000
+    let capacity = (walls.width * walls.height / 2) as usize;
+    let visited = HashSet::<(Point, Direction)>::with_capacity(capacity);
+    let is_circular = false;
+    let mut package = Package {visited, is_circular };
+
+    walk_route(start, walls, &mut package, process_point);
+
+    package.is_circular
 }
 
 pub fn parse_input(input: &str) -> (Point, Grid<bool>) {

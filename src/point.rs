@@ -1,10 +1,10 @@
-#[derive(Debug, Clone, PartialEq, PartialOrd, Copy)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Copy, Hash, Eq)]
 pub struct Point {
     pub x: isize,
     pub y: isize,
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Copy)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Copy, Hash, Eq)]
 pub enum Direction {
     North,
     NorthEast,
