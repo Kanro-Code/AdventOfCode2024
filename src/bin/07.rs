@@ -4,9 +4,16 @@ advent_of_code::solution!(7);
 fn add(a: u64, b: u64) -> u64 { a + b }
 fn mul(a: u64, b: u64) -> u64 { a * b }
 fn concatenate(a: u64, b: u64) -> u64 {
-    let a = a.to_string();
-    let b = b.to_string();
-    a.chars().chain(b.chars()).collect::<String>().parse().unwrap()
+    if b == 0 {
+        return a;
+    }
+    let mut multiplier = 10;
+    let mut temp = b;
+    while temp >= 10 {
+        multiplier *= 10;
+        temp /= 10;
+    }
+    a * multiplier + b
 }
 
 pub fn part_one(input: &str) -> Option<u64> {
