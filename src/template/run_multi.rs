@@ -242,11 +242,7 @@ pub mod child_commands {
         #[test]
         fn parses_missing_parts() {
             let res = parse_exec_time(
-                &[
-                    "Part 1: ✖        ".into(),
-                    "Part 2: ✖        ".into(),
-                    "".into(),
-                ],
+                &["Part 1: ✖        ".into(), "Part 2: ✖        ".into(), "".into()],
                 day!(1),
             );
             assert_approx_eq!(res.total_nanos, 0_f64);

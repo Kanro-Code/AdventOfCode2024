@@ -3,12 +3,8 @@ use std::collections::HashSet;
 
 advent_of_code::solution!(6);
 
-const DIRECTIONS: [Direction; 4] = [
-    Direction::North,
-    Direction::East,
-    Direction::South,
-    Direction::West,
-];
+const DIRECTIONS: [Direction; 4] =
+    [Direction::North, Direction::East, Direction::South, Direction::West];
 
 pub fn part_one(input: &str) -> Option<u64> {
     let (start, walls) = parse_input(input);
@@ -102,7 +98,10 @@ pub fn is_circular_route(start: Point, walls: &Grid<bool>) -> bool {
     let capacity = (walls.width * walls.height / 2) as usize;
     let visited = HashSet::<(Point, Direction)>::with_capacity(capacity);
     let is_circular = false;
-    let mut package = Package {visited, is_circular };
+    let mut package = Package {
+        visited,
+        is_circular,
+    };
 
     walk_route(start, walls, &mut package, process_point);
 

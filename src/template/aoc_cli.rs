@@ -38,11 +38,7 @@ pub fn read(day: Day) -> Result<Output, AocCommandError> {
 
     let args = build_args(
         "read",
-        &[
-            "--description-only".into(),
-            "--puzzle-file".into(),
-            puzzle_path,
-        ],
+        &["--description-only".into(), "--puzzle-file".into(), puzzle_path],
         day,
     );
 

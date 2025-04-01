@@ -1,49 +1,46 @@
 advent_of_code::solution!(7);
 
-
-fn add(a: u64, b: u64) -> u64 { a + b }
-fn mul(a: u64, b: u64) -> u64 { a * b }
-fn concatenate(a: u64, b: u64) -> u64 {
-    if b == 0 {
-        return a;
-    }
-    let mut multiplier = 10;
-    let mut temp = b;
-    while temp >= 10 {
-        multiplier *= 10;
-        temp /= 10;
-    }
-    a * multiplier + b
-}
-
 pub fn part_one(input: &str) -> Option<u64> {
-    let operations = [add, mul];
-
+    let operations = [u64::wrapping_add, u64::wrapping_mul];
     let input = parse_input(input);
 
-    let total = input.iter().filter_map(|calc| {
-        match calc.run(&operations) {
-            true => Some(calc.answer),
-            false => None
-        }
-    }).sum();
-
+    let total = get_total(input, &operations);
     Some(total)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let operations = [add, mul, concatenate];
+    #[rustfmt::skip]
+    let operations = [
+        u64::wrapping_add,
+        u64::wrapping_mul,
+        |a: u64, b: u64| {
+            if b == 0 {
+                return a;
+            }
+            let mut multiplier = 10;
+            let mut temp = b;
+            while temp >= 10 {
+                multiplier *= 10;
+                temp /= 10;
+            }
+            a * multiplier + b
+        },
+    ];
 
     let input = parse_input(input);
 
-    let total = input.iter().filter_map(|calc| {
-        match calc.run(&operations) {
-            true => Some(calc.answer),
-            false => None
-        }
-    }).sum();
-
+    let total = get_total(input, &operations);
     Some(total)
+}
+
+pub fn get_total(input: Vec<Calculation>, operations: &[Operation]) -> u64 {
+    input
+        .iter()
+        .filter_map(|calc| match calc.can_reach_answer(operations) {
+            true => Some(calc.answer),
+            false => None,
+        })
+        .sum()
 }
 
 #[derive(Debug, Clone)]
@@ -55,38 +52,54 @@ pub struct Calculation {
 type Operation = fn(u64, u64) -> u64;
 
 impl Calculation {
-    pub fn run(&self, operations: &[Operation]) -> bool {
-        let count = operations.len().pow((self.components.len() as u32) - 1);
-        for state in 0..count {
-            let outcome = recursive(self.components[0], &self.components[1..], state, operations);
+    pub fn can_reach_answer(&self, operations: &[Operation]) -> bool {
+        let number_encoding = operations.len().pow((self.components.len() as u32) - 1);
+        for state in 0..number_encoding {
+            let outcome = Self::apply_operations(
+                self.components[0],
+                &self.components[1..],
+                state,
+                operations,
+            );
 
             if outcome == self.answer {
                 return true;
             }
-
         }
 
         false
     }
-}
 
+    fn apply_operations(
+        acc: u64,
+        remaining_numbers: &[u64],
+        state: usize,
+        operations: &[Operation],
+    ) -> u64 {
+        if remaining_numbers.is_empty() {
+            return acc;
+        }
 
-pub fn recursive(total: u64, rest: &[u64], state: usize, operations: &[Operation]) -> u64 {
-    if rest.is_empty() {
-        return total;
+        let new = operations[state % operations.len()](acc, remaining_numbers[0]);
+        let remaining = &remaining_numbers[1..];
+        let operation_code = state / operations.len();
+        Self::apply_operations(new, remaining, operation_code, operations)
     }
-
-    let new = operations[state % operations.len()](total, rest[0]);
-    recursive(new, &rest[1..], state / operations.len(), operations)
 }
 
 pub fn parse_input(input: &str) -> Vec<Calculation> {
-    input.lines().map(|line| {
-        let (left, right) = line.split_once(": ").unwrap();
-        let answer = left.parse().unwrap();
-        let components = right.split_whitespace().map(|x| x.parse().unwrap()).collect();
-        Calculation { answer, components }
-    }).collect()
+    input
+        .lines()
+        .map(|line| {
+            let (left, right) = line.split_once(": ").unwrap();
+            let answer = left.parse().unwrap();
+            let components = right
+                .split_whitespace()
+                .map(|x| x.parse().unwrap())
+                .collect();
+            Calculation { answer, components }
+        })
+        .collect()
 }
 
 #[cfg(test)]
