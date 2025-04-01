@@ -1,46 +1,23 @@
 advent_of_code::solution!(7);
 
 pub fn part_one(input: &str) -> Option<u64> {
-    let operations = [u64::wrapping_add, u64::wrapping_mul];
     let input = parse_input(input);
+    let operations = [u64::wrapping_add, u64::wrapping_mul];
 
     let total = get_total(input, &operations);
     Some(total)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    #[rustfmt::skip]
+    let input = parse_input(input);
     let operations = [
         u64::wrapping_add,
         u64::wrapping_mul,
-        |a: u64, b: u64| {
-            if b == 0 {
-                return a;
-            }
-            let mut multiplier = 10;
-            let mut temp = b;
-            while temp >= 10 {
-                multiplier *= 10;
-                temp /= 10;
-            }
-            a * multiplier + b
-        },
+        concatenate,
     ];
-
-    let input = parse_input(input);
 
     let total = get_total(input, &operations);
     Some(total)
-}
-
-pub fn get_total(input: Vec<Calculation>, operations: &[Operation]) -> u64 {
-    input
-        .iter()
-        .filter_map(|calc| match calc.can_reach_answer(operations) {
-            true => Some(calc.answer),
-            false => None,
-        })
-        .sum()
 }
 
 #[derive(Debug, Clone)]
@@ -54,6 +31,7 @@ type Operation = fn(u64, u64) -> u64;
 impl Calculation {
     pub fn can_reach_answer(&self, operations: &[Operation]) -> bool {
         let number_encoding = operations.len().pow((self.components.len() as u32) - 1);
+
         for state in 0..number_encoding {
             let outcome = Self::apply_operations(
                 self.components[0],
@@ -87,6 +65,29 @@ impl Calculation {
     }
 }
 
+pub fn get_total(input: Vec<Calculation>, operations: &[Operation]) -> u64 {
+    input
+        .iter()
+        .filter_map(|calc| match calc.can_reach_answer(operations) {
+            true => Some(calc.answer),
+            false => None,
+        })
+        .sum()
+}
+
+pub fn concatenate(a: u64, b: u64) -> u64 {
+    if b == 0 {
+        return a;
+    }
+    let mut multiplier = 10;
+    let mut temp = b;
+    while temp >= 10 {
+        multiplier *= 10;
+        temp /= 10;
+    }
+    a * multiplier + b
+}
+
 pub fn parse_input(input: &str) -> Vec<Calculation> {
     input
         .lines()
@@ -118,3 +119,4 @@ mod tests {
         assert_eq!(result, Some(11387));
     }
 }
+
