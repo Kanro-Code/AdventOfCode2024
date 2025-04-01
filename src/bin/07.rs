@@ -1,15 +1,21 @@
 advent_of_code::solution!(7);
 
 
-const fn add(a: u64, b: u64) -> u64 { a + b }
-const fn mul(a: u64, b: u64) -> u64 { a * b }
-const OPERATIONS: [fn(u64, u64) -> u64; 2] = [add, mul];
+fn add(a: u64, b: u64) -> u64 { a + b }
+fn mul(a: u64, b: u64) -> u64 { a * b }
+fn concatenate(a: u64, b: u64) -> u64 {
+    let a = a.to_string();
+    let b = b.to_string();
+    a.chars().chain(b.chars()).collect::<String>().parse().unwrap()
+}
 
 pub fn part_one(input: &str) -> Option<u64> {
+    let operations = [add, mul];
+
     let input = parse_input(input);
 
     let total = input.iter().filter_map(|calc| {
-        match calc.run() {
+        match calc.run(&operations) {
             true => Some(calc.answer),
             false => None
         }
@@ -18,8 +24,19 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(total)
 }
 
-pub fn part_two(_input: &str) -> Option<u64> {
-    None
+pub fn part_two(input: &str) -> Option<u64> {
+    let operations = [add, mul, concatenate];
+
+    let input = parse_input(input);
+
+    let total = input.iter().filter_map(|calc| {
+        match calc.run(&operations) {
+            true => Some(calc.answer),
+            false => None
+        }
+    }).sum();
+
+    Some(total)
 }
 
 #[derive(Debug, Clone)]
@@ -28,11 +45,13 @@ pub struct Calculation {
     pub components: Vec<u64>,
 }
 
+type Operation = fn(u64, u64) -> u64;
+
 impl Calculation {
-    pub fn run(&self) -> bool {
-        let count = (2_u64).pow((self.components.len() as u32) - 1) as usize;
+    pub fn run(&self, operations: &[Operation]) -> bool {
+        let count = operations.len().pow((self.components.len() as u32) - 1);
         for state in 0..count {
-            let outcome = recursive(self.components[0], &self.components[1..], state);
+            let outcome = recursive(self.components[0], &self.components[1..], state, operations);
 
             if outcome == self.answer {
                 return true;
@@ -45,13 +64,13 @@ impl Calculation {
 }
 
 
-pub fn recursive(total: u64, rest: &[u64], state: usize) -> u64 {
+pub fn recursive(total: u64, rest: &[u64], state: usize, operations: &[Operation]) -> u64 {
     if rest.is_empty() {
         return total;
     }
 
-    let new = OPERATIONS[state % 2](total, rest[0]);
-    recursive(new, &rest[1..], state / 2)
+    let new = operations[state % operations.len()](total, rest[0]);
+    recursive(new, &rest[1..], state / operations.len(), operations)
 }
 
 pub fn parse_input(input: &str) -> Vec<Calculation> {
@@ -76,6 +95,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(11387));
     }
 }
