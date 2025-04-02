@@ -40,6 +40,15 @@ where
         self.cells[point.y as usize][point.x as usize] = value;
     }
 
+    pub fn set_safe(&mut self, point: Point, value: T) -> bool {
+        if self.out_of_bounds(&point) {
+            return false;
+        }
+
+        self.set(point, value);
+        true
+    }
+
     pub fn matches(&self, point: Point, direction: Direction, expected: &[T]) -> bool {
         let mut iter = self
             .iter()

@@ -10,11 +10,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 
 pub fn part_two(input: &str) -> Option<u64> {
     let input = parse_input(input);
-    let operations = [
-        u64::wrapping_add,
-        u64::wrapping_mul,
-        concatenate,
-    ];
+    let operations = [u64::wrapping_add, u64::wrapping_mul, concatenate];
 
     let total = get_total(input, &operations);
     Some(total)
@@ -119,4 +115,3 @@ mod tests {
         assert_eq!(result, Some(11387));
     }
 }
-

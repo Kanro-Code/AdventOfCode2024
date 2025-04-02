@@ -4,6 +4,19 @@ pub struct Point {
     pub y: isize,
 }
 
+impl Point {
+    pub fn offset(&self, dx: isize, dy: isize) -> Point {
+        Point {
+            x: self.x + dx,
+            y: self.y + dy,
+        }
+    }
+
+    pub fn translate_offset(&self, other: Point) -> Point {
+        self.offset(self.x - other.x, self.y - other.y)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Copy, Hash, Eq)]
 pub enum Direction {
     North,
@@ -31,70 +44,19 @@ impl Direction {
     }
 }
 
-// #[derive(Debug, Clone, PartialEq, PartialOrd)]
-// pub struct Coordinate {
-//     pub x: usize,
-//     pub y: usize,
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-// impl Coordinate {
-//     pub fn offset_by(&self, dx: isize, dy: isize) -> Coordinate {
-//         let x = (self.x as isize + dx) as usize;
-//         let y = (self.y as isize + dy) as usize;
+    #[test]
+    fn test_offset() {
+        let point = Point { x: 1, y: 1 };
+        assert_eq!(point.offset(1, 1), Point { x: 2, y: 2 });
 
-//         Coordinate { x, y }
-//     }
-// }
+        let point_a = Point { x: 3, y: 3 };
+        let point_b = Point { x: 5, y: 5 };
 
-// #[derive(Debug, Clone, PartialEq, PartialOrd)]
-// pub enum Direction {
-//     North,
-//     NorthEast,
-//     East,
-//     SouthEast,
-//     South,
-//     SouthWest,
-//     West,
-//     NorthWest,
-// }
-
-// impl Direction {
-//     /// Returns the vector of the direction
-//     /// The vector is a tuple of (dx, dy)
-//     ///
-//     /// - Negative dx moves west
-//     /// - Negative dy moves north
-//     /// - Positive dx moves east
-//     /// - Positive dy moves south
-//     pub fn delta(&self) -> (isize, isize) {
-//         match self {
-//             Direction::North => (0, -1),
-//             Direction::NorthEast => (1, -1),
-//             Direction::East => (1, 0),
-//             Direction::SouthEast => (1, 1),
-//             Direction::South => (0, 1),
-//             Direction::SouthWest => (-1, 1),
-//             Direction::West => (-1, 0),
-//             Direction::NorthWest => (-1, -1),
-//         }
-//     }
-
-//     pub fn out_of_bounds(&self, coor: &Coordinate, width: usize, height: usize) -> bool {
-//         let (dx, dy) = self.delta();
-
-//         if coor.x as isize + dx < 0 || coor.x as isize + dx >= width as isize {
-//             return true;
-//         }
-
-//         if coor.y as isize + dy < 0 || coor.y as isize + dy > height as isize {
-//             return true;
-//         }
-
-//         false
-//     }
-
-//     pub fn offset_by(&self, coor: &Coordinate) -> Coordinate {
-//         let (dx, dy) = self.delta();
-//         coor.offset_by(dx, dy)
-//     }
-// }
+        assert_eq!(point_a.translate_offset(point_b), Point { x: 1, y: 1 });
+        assert_eq!(point_b.translate_offset(point_a), Point { x: 7, y: 7 });
+    }
+}
