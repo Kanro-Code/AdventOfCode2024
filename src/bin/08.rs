@@ -38,7 +38,10 @@ pub fn part_two(input: &str) -> Option<u64> {
 
                 loop {
                     let offset = to.offset(dx, dy);
-                    to = Point { x: to.x + dx, y: to.y + dy };
+                    to = Point {
+                        x: to.x + dx,
+                        y: to.y + dy,
+                    };
                     if !antinodes.set_safe(offset, true) {
                         break;
                     }
