@@ -24,7 +24,31 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    None
+    let (antennas, edge) = parse_input(input);
+    let mut antinodes = Grid::<bool>::new_empty(edge.x, edge.y);
+
+    antennas
+        .values()
+        .flat_map(|points| points.iter().combinations(2))
+        .for_each(|pair| {
+            let [p1, p2] = [pair[0], pair[1]];
+            for (from, to) in [(p1, p2), (p2, p1)] {
+                let (dx, dy) = from.delta(*to);
+                let mut to = *to;
+
+                loop {
+                    let offset = to.offset(dx, dy);
+                    to = Point { x: to.x + dx, y: to.y + dy };
+                    if !antinodes.set_safe(offset, true) {
+                        break;
+                    }
+                }
+            }
+        });
+
+    let total = antinodes.iter().filter(|&x| x).count() as u64;
+
+    Some(total)
 }
 
 pub fn parse_input(input: &str) -> (HashMap<char, Vec<Point>>, Point) {
@@ -62,6 +86,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(34));
     }
 }

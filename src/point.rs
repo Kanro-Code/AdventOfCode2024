@@ -13,7 +13,12 @@ impl Point {
     }
 
     pub fn translate_offset(&self, other: Point) -> Point {
-        self.offset(self.x - other.x, self.y - other.y)
+        let (dx, dy) = self.delta(other);
+        self.offset(dx, dy)
+    }
+
+    pub fn delta(&self, other: Point) -> (isize, isize) {
+        (self.x - other.x, self.y - other.y)
     }
 }
 
