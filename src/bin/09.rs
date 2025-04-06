@@ -8,18 +8,20 @@ pub fn part_one(input: &str) -> Option<u64> {
         Some(b.size)
     }).sum::<usize>();
 
-    let mut answer = Vec::with_capacity(capacity);
+    let mut checksum = 0;
+    let mut count = 0;
 
 
     for i in 0..input.len() {
-        if answer.len() == capacity {
+        if count == capacity {
             break;
         }
         let entry = input[i];
 
         if entry.id.is_some() {
             for _ in 0..entry.size {
-                answer.push(entry.id.unwrap());
+                checksum += entry.id.unwrap() * count;
+                count += 1;
             }
         } else {
             let mut size = entry.size;
@@ -33,7 +35,8 @@ pub fn part_one(input: &str) -> Option<u64> {
                 if input[end].size > 0 {
                     input[end].size -= 1;
 
-                    answer.push(input[end].id.unwrap());
+                    checksum += input[end].id.unwrap() * count;
+                    count += 1;
                     size -= 1;
                 } else {
                     end -= 1;
@@ -42,9 +45,7 @@ pub fn part_one(input: &str) -> Option<u64> {
         }
     }
 
-    let total = checksum(&answer);
-
-    Some(total as u64)
+    Some(checksum as u64)
 }
 
 pub fn part_two(_input: &str) -> Option<u64> {
