@@ -1,5 +1,4 @@
 use advent_of_code::{Direction, Grid, Point};
-use std::collections::HashMap;
 
 advent_of_code::solution!(10);
 
@@ -56,16 +55,16 @@ pub fn walk_path(grid: &Grid<u32>, start: Point) -> usize {
 }
 
 pub fn walk_path_rated(grid: &Grid<u32>, start: Point) -> usize {
-    let mut found = HashMap::new();
+    let mut total = 0;
     let current = grid.get(start);
 
-    let mut count_function = |point: Point| {
-        *found.entry(point).or_insert(0) += 1;
+    let mut count_function = |_| {
+        total += 1;
     };
 
     walk_path_recur(grid, start, current, &mut count_function);
 
-    found.values().sum()
+    total
 }
 
 pub fn walk_path_recur<F>(grid: &Grid<u32>, point: Point, current: u32, count_function: &mut F)
