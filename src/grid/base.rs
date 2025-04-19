@@ -36,6 +36,14 @@ where
         self.cells[point.y as usize][point.x as usize]
     }
 
+    pub fn get_safe(&self, point: Point) -> Option<T> {
+        if self.out_of_bounds(&point) {
+            return None;
+        }
+
+        Some(self.get(point))
+    }
+
     pub fn set(&mut self, point: Point, value: T) {
         self.cells[point.y as usize][point.x as usize] = value;
     }

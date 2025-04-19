@@ -20,6 +20,11 @@ impl Point {
     pub fn delta(&self, other: Point) -> (isize, isize) {
         (self.x - other.x, self.y - other.y)
     }
+
+    pub fn translate_direction(&self, direction: Direction) -> Point {
+        let (dx, dy) = direction.delta();
+        self.offset(dx, dy)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Copy, Hash, Eq)]
