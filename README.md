@@ -17,9 +17,9 @@ Being late to the party, I did the challenges during March/April 2025.
 | [Day 4](./src/bin/04.rs) | `282.8µs` | `116.2µs` |
 | [Day 5](./src/bin/05.rs) | `127.7µs` | `251.3µs` |
 | [Day 6](./src/bin/06.rs) | `107.0µs` | `731.5ms` |
-| [Day 10](./src/bin/10.rs) | `56.8µs` | `-` |
+| [Day 10](./src/bin/10.rs) | `56.1µs` | `81.8µs` |
 
-**Total: 733.61ms**
+**Total: 733.69ms**
 <!--- benchmarking table --->
 
 ---

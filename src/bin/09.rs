@@ -3,14 +3,16 @@ advent_of_code::solution!(9);
 pub fn part_one(input: &str) -> Option<u64> {
     let mut input = parse_input(input);
     let mut end = input.len() - 1;
-    let capacity = input.iter().filter_map(|b| {
-        b.id?;
-        Some(b.size)
-    }).sum::<usize>();
+    let capacity = input
+        .iter()
+        .filter_map(|b| {
+            b.id?;
+            Some(b.size)
+        })
+        .sum::<usize>();
 
     let mut checksum = 0;
     let mut count = 0;
-
 
     for i in 0..input.len() {
         if count == capacity {
@@ -53,9 +55,10 @@ pub fn part_two(_input: &str) -> Option<u64> {
 }
 
 pub fn checksum(input: &[usize]) -> usize {
-    input.iter().enumerate().fold(0, |acc, (i, &x)| {
-        acc + (i * x)
-    })
+    input
+        .iter()
+        .enumerate()
+        .fold(0, |acc, (i, &x)| acc + (i * x))
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
