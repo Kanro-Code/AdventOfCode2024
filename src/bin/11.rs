@@ -2,12 +2,12 @@ advent_of_code::solution!(11);
 
 pub fn part_one(input: &str) -> Option<u64> {
     let input = parse_input(input);
-    let mut total = 0;
+    let mut end_nodes = 0;
 
     for e in input.iter() {
-        transform_number(*e, 25, &mut total);
+        blink(*e, 25, &mut end_nodes);
     }
-    Some(total as u64)
+    Some(end_nodes as u64)
 }
 
 pub fn part_two(_input: &str) -> Option<u64> {
@@ -24,24 +24,24 @@ pub fn parse_input(input: &str) -> Vec<usize> {
         .collect()
 }
 
-pub fn transform_number(input: usize, steps: usize, total: &mut usize) {
-    if steps == 0 {
-        *total += 1;
+pub fn blink(number: usize, remaining_blinks: usize, end_nodes: &mut usize) {
+    if remaining_blinks == 0 {
+        *end_nodes += 1;
         return;
     }
 
-    let next_step = steps - 1;
-    let count_digits = count_digits(input);
+    let remaining_blinks = remaining_blinks - 1;
+    let count_digits = count_digits(number);
 
-    if input == 0 {
-        transform_number(1, next_step, total)
+    if number == 0 {
+        blink(1, remaining_blinks, end_nodes)
     } else if count_digits % 2 == 0 {
-        let (a, b) = split_into_two(input, count_digits);
+        let (a, b) = split_into_two(number, count_digits);
 
-        transform_number(a, next_step, total);
-        transform_number(b, next_step, total)
+        blink(a, remaining_blinks, end_nodes);
+        blink(b, remaining_blinks, end_nodes)
     } else {
-        transform_number(input * 2024, next_step, total);
+        blink(number * 2024, remaining_blinks, end_nodes);
     }
 }
 
