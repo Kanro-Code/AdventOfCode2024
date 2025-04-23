@@ -1,17 +1,65 @@
+use std::collections::HashMap;
+
 advent_of_code::solution!(11);
 
 pub fn part_one(input: &str) -> Option<u64> {
     let input = parse_input(input);
+    let answer = blink_sequence(input, 25);
+    Some(answer as u64)
+}
+
+pub fn part_two(input: &str) -> Option<u64> {
+    let input = parse_input(input);
+    let answer = blink_sequence(input, 75);
+    Some(answer as u64)
+}
+
+pub fn blink_sequence(input: Vec<usize>, iterations: usize) -> usize {
+    let mut hash_map = HashMap::new();
     let mut end_nodes = 0;
 
     for e in input.iter() {
-        blink(*e, 25, &mut end_nodes);
+        let stone = Stone {
+            number: *e,
+            remaining: iterations,
+        };
+        end_nodes += blink(stone, &mut hash_map);
     }
-    Some(end_nodes as u64)
+
+    end_nodes
 }
 
-pub fn part_two(_input: &str) -> Option<u64> {
-    None
+pub fn blink(stone: Stone, cache: &mut HashMap<Stone, usize>) -> usize {
+    if stone.remaining == 0 {
+        return 1;
+    }
+
+    if let Some(&cached) = cache.get(&stone) {
+        return cached;
+    }
+
+    let count_digits = stone.count_digits();
+
+    let answer = if stone.number == 0 {
+        blink(stone.next(1), cache)
+    } else if count_digits % 2 == 0 {
+        let (half_a, half_b) = stone.split(count_digits / 2);
+        blink(half_a, cache) + blink(half_b, cache)
+    } else {
+        blink(stone.next(stone.number * 2024), cache)
+    };
+
+    cache.insert(stone, answer);
+
+    answer
+}
+
+pub fn split_into_two(input: usize, digits: usize) -> (usize, usize) {
+    let half = digits / 2;
+    let factor = 10_usize.pow(half as u32);
+    let a = input / factor;
+    let b = input % factor;
+    (a, b)
 }
 
 pub fn parse_input(input: &str) -> Vec<usize> {
@@ -24,43 +72,45 @@ pub fn parse_input(input: &str) -> Vec<usize> {
         .collect()
 }
 
-pub fn blink(number: usize, remaining_blinks: usize, end_nodes: &mut usize) {
-    if remaining_blinks == 0 {
-        *end_nodes += 1;
-        return;
-    }
-
-    let remaining_blinks = remaining_blinks - 1;
-    let count_digits = count_digits(number);
-
-    if number == 0 {
-        blink(1, remaining_blinks, end_nodes)
-    } else if count_digits % 2 == 0 {
-        let (a, b) = split_into_two(number, count_digits);
-
-        blink(a, remaining_blinks, end_nodes);
-        blink(b, remaining_blinks, end_nodes)
-    } else {
-        blink(number * 2024, remaining_blinks, end_nodes);
-    }
+#[derive(Hash, Eq, PartialEq, Debug)]
+pub struct Stone {
+    number: usize,
+    remaining: usize,
 }
 
-pub fn split_into_two(input: usize, digits: usize) -> (usize, usize) {
-    let half = digits / 2;
-    let factor = 10_usize.pow(half as u32);
-    let a = input / factor;
-    let b = input % factor;
-    (a, b)
-}
-
-pub fn count_digits(input: usize) -> usize {
-    let mut count = 0;
-    let mut x = input;
-    while x > 0 {
-        count += 1;
-        x /= 10;
+impl Stone {
+    pub fn next(&self, number: usize) -> Stone {
+        Stone {
+            number,
+            remaining: self.remaining - 1,
+        }
     }
-    count
+
+    pub fn split(&self, split: usize) -> (Stone, Stone) {
+        let factor = 10_usize.pow(split as u32);
+        let a = self.number / factor;
+        let b = self.number % factor;
+        (
+            Stone {
+                number: a,
+                remaining: self.remaining - 1,
+            },
+            Stone {
+                number: b,
+                remaining: self.remaining - 1,
+            },
+        )
+    }
+
+    pub fn count_digits(&self) -> usize {
+        let mut count = 0;
+        let mut x = self.number;
+        while x > 0 {
+            count += 1;
+            x /= 10;
+        }
+        count
+    }
 }
 
 #[cfg(test)]

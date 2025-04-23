@@ -11,16 +11,17 @@ Being late to the party, I did the challenges during March/April 2025.
 
 | Day | Part 1 | Part 2 |
 | :---: | :---: | :---:  |
-| [Day 1](./src/bin/01.rs) | `40.0µs` | `68.5µs` |
-| [Day 2](./src/bin/02.rs) | `85.3µs` | `214.3µs` |
-| [Day 3](./src/bin/03.rs) | `345.7µs` | `411.0µs` |
-| [Day 4](./src/bin/04.rs) | `282.8µs` | `116.2µs` |
-| [Day 5](./src/bin/05.rs) | `127.7µs` | `251.3µs` |
-| [Day 6](./src/bin/06.rs) | `107.0µs` | `731.5ms` |
-| [Day 10](./src/bin/10.rs) | `56.1µs` | `81.8µs` |
-| [Day 11](./src/bin/11.rs) | `1.0ms` | `-` |
+| [Day 1](./src/bin/01.rs) | `50.5µs` | `83.1µs` |
+| [Day 2](./src/bin/02.rs) | `120.2µs` | `294.5µs` |
+| [Day 3](./src/bin/03.rs) | `458.2µs` | `518.1µs` |
+| [Day 4](./src/bin/04.rs) | `381.8µs` | `169.4µs` |
+| [Day 5](./src/bin/05.rs) | `173.7µs` | `344.6µs` |
+| [Day 6](./src/bin/06.rs) | `163.8µs` | `989.4ms` |
+| [Day 7](./src/bin/07.rs) | `8.2ms` | `466.2ms` |
+| [Day 8](./src/bin/08.rs) | `42.6µs` | `43.7µs` |
+| [Day 11](./src/bin/11.rs) | `459.4µs` | `24.4ms` |
 
-**Total: 734.69ms**
+**Total: 1491.50ms**
 <!--- benchmarking table --->
 
 ---
