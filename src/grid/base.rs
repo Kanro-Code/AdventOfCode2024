@@ -93,6 +93,16 @@ where
         false
     }
 
+    /// Returns a vector of points that are part of the cluster
+    /// starting from the given point.
+    /// The cluster is defined as all points that are adjacent to the starting point
+    /// in the cardinal directions (N, S, E, W) and have the same value as the starting point.
+    ///
+    /// !! The given point must be at the heighest point of the cluster for performance reasons.
+    pub fn get_cluster(&self, point: Point) -> Vec<Point> {
+        unimplemented!()
+    }
+
     pub fn iter(&self) -> GridIterator<T> {
         GridIterator::new(self)
     }
